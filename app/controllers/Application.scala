@@ -15,10 +15,19 @@ object Application extends Controller {
 
   def index = Action.async { implicit request =>
     val start = System.nanoTime
-    val cells = services.GribExtractor.extract("/Users/emilientaque/tmp/gfs.t00z.pgrb2.1p00.f000", 1L)
-    dao.WindCellsDAO.copy(cells)
+    val cellsInBox = WindCellsDAO.inBox(1L, Box(Position(0, 0), Position(30, 30)))
     println((System.nanoTime - start) / 1e6)
-    Future.successful(Ok("TODO"))
+    Future.successful(Ok(cellsInBox.length.toString))
+  }
+
+  def load = Action.async { implicit request =>
+    val start = System.nanoTime
+    1.to(20).map { n =>
+      val cells = services.GribExtractor.extract("/Users/emilientaque/tmp/gfs.t00z.pgrb2.1p00.f000", n)
+      WindCellsDAO.copy(cells)
+    }
+    println((System.nanoTime - start) / 1e6)
+    Future.successful(Ok("Done."))
   }
 }
 

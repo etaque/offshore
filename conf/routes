@@ -1,1 +1,2 @@
 GET         /                                                  controllers.Application.index
+GET         /load                                              controllers.Application.load
