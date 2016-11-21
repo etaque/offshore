@@ -13,7 +13,9 @@ tmp
 /.project
 /.settings
 .sass-cache
-node_modules
+client/node_modules
 .ensime
 .ensime_cache
 conf/local.conf
+public/bundle.js
+public/bundle.js.map
