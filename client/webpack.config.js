@@ -15,6 +15,7 @@ loaders.push({
     'css'
   ]
 });
+
 // local scss modules
 loaders.push({
   test: /\.scss$/,
@@ -37,9 +38,13 @@ loaders.push({
   ]
 });
 
+loaders.push({
+  test: /\.json$/,
+  loader: 'json'
+});
+
 module.exports = {
   entry: [
-    'react-hot-loader/patch',
     './src/index.js' // your app's entry point
   ],
   devtool: process.env.WEBPACK_DEVTOOL || 'cheap-module-source-map',
