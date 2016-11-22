@@ -43,6 +43,12 @@ loaders.push({
   loader: 'json'
 });
 
+loaders.push({
+  test: /\.js$/,
+  include: path.resolve('node_modules/mapbox-gl-shaders/index.js'),
+  loader: 'transform/cacheable?brfs'
+});
+
 module.exports = {
   entry: [
     './src/index.js' // your app's entry point
@@ -71,6 +77,11 @@ module.exports = {
     port: PORT,
     host: HOST
   },
+  postLoaders: [{
+    include: /node_modules\/mapbox-gl-shaders/,
+    loader: 'transform',
+    query: 'brfs'
+  }],
   plugins: [
     new webpack.NoErrorsPlugin(),
     new webpack.HotModuleReplacementPlugin()
