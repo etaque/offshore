@@ -16,6 +16,7 @@ tmp
 /.settings
 .sass-cache
 client/node_modules
+npm-debug.log
 .ensime
 .ensime_cache
 conf/local.conf

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom';
 import h from 'react-hyperscript';
 import MapGL from 'react-map-gl';
 
@@ -19,6 +19,6 @@ class App extends React.Component {
   }
 }
 
-render(h(App));
+ReactDOM.render(React.createElement(App, {}), document.getElementById('container'));
 
-
+module.exports = {};
