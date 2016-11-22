@@ -1,14 +1,20 @@
 package controllers
 
+import java.io.{File, FileOutputStream}
+
 import scala.concurrent.Future
-import scala.concurrent.duration._
-import akka.util.Timeout
+
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc._
-import play.api.Play.current
 
 import models._
 import dao._
+import org.joda.time.DateTime
+import play.api.libs.ws.{WS}
+import utils.Conf
+import play.api.libs.iteratee._
+import play.api.libs.ws.ning._
+
 
 
 object Application extends Controller {
@@ -20,14 +26,50 @@ object Application extends Controller {
     Future.successful(Ok(cellsInBox.length.toString))
   }
 
-  def load = Action.async { implicit request =>
-    val start = System.nanoTime
-    1.to(20).map { n =>
-      val cells = services.GribExtractor.extract("/Users/emilientaque/tmp/gfs.t00z.pgrb2.1p00.f000", n)
-      WindCellsDAO.copy(cells)
+  private def downloadGfsFile: Future[File] = {
+    val completeGfsFileName = DateTime.now.toString("yyyyMMdd") + "00" + Conf.gfsFileName
+    val outputFile = File.createTempFile("gfs","tmp")
+
+    implicit val wslient = NingWSClient()
+
+    WS.clientUrl(Conf.gfsBaseUrl + completeGfsFileName).getStream().flatMap {
+    case (headers, body) if headers.status == OK =>
+      val outputStream = new FileOutputStream(outputFile.getAbsolutePath)
+
+      val iteratee = Iteratee.foreach[Array[Byte]] { bytes =>
+        outputStream.write(bytes)
+      }
+
+      (body |>>> iteratee).andThen {
+        case result =>
+          outputStream.close()
+
+          result.get
+      }.map(_ => outputFile)
+
+    case _ =>
+      println("Error retrieving file : " + completeGfsFileName)
+      Future(outputFile)
     }
+  }
+
+  def load = Action.async { implicit request =>
+
+    val start = System.nanoTime
+
+    for {
+      file <- downloadGfsFile
+    } yield {
+      1.to(20).map { n =>
+        val cells = services.GribExtractor.extract(file.getPath, n)
+        WindCellsDAO.copy(cells)
+      }
+    }
+
     println((System.nanoTime - start) / 1e6)
     Future.successful(Ok("Done."))
   }
+
+
 }
 
