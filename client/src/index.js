@@ -1,4 +1,5 @@
 import R from 'ramda';
+import debounce from 'lodash.debounce';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -8,6 +9,27 @@ import MapGL from 'react-map-gl';
 class App extends React.Component {
 
   state = {}
+
+  updateDimensions = debounce(() => {
+      this.setState({
+        viewport: R.merge(this.state.viewport, {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        })
+      });
+  }, 500)
+
+  componentWillMount = () => {
+    this.updateDimensions();
+  }
+
+  componentDidMount = () => {
+    window.addEventListener("resize", this.updateDimensions);
+  }
+
+  componentWillUnmount = () => {
+    window.removeEventListener("resize", this.updateDimensions);
+  }
 
   _onChangeViewport = (opt) => {
     if (this.props && this.props.onChangeViewport) {
