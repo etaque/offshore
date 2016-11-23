@@ -2,7 +2,6 @@ import R from 'ramda';
 import debounce from 'lodash.debounce';
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import h from 'react-hyperscript';
 import MapGL from 'react-map-gl';
 
@@ -11,12 +10,12 @@ export default class App extends React.Component {
   state = {}
 
   updateDimensions = debounce(() => {
-      this.setState({
-        viewport: R.merge(this.state.viewport, {
-          width: window.innerWidth,
-          height: window.innerHeight,
-        })
-      });
+    this.setState({
+      viewport: R.merge(this.state.viewport, {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    });
   }, 500)
 
   componentWillMount = () => {
