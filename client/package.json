@@ -29,6 +29,7 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
+    "fluxx": "^0.14.13",
     "immutable": "^3.8.1",
     "lodash.debounce": "^4.0.8",
     "ramda": "^0.22.1",
