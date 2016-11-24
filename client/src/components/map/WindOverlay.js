@@ -44,10 +44,12 @@ class WindOverlay extends React.Component {
       const long = windCell[1] + (0.05 * offset * Math.cos(u));
       const lat = windCell[0] + (0.05 * offset * Math.sin(u));
       const opacity = 255 - (Math.abs(offset) * 255 / 25);
+      const red = Math.abs(windCell[3]) * 255 / 15;
+      const blue = 255 - red;
       return {
         sourcePosition: [long, lat],
         targetPosition: [long + (v * Math.cos(u)), lat + (v * Math.sin(u))],
-        color: [0, 0, 150, opacity]
+        color: [red, 0, blue, opacity]
       };
     }, this.props.wind);
   }
