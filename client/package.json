@@ -27,6 +27,7 @@
     "gulp-sourcemaps": "^1.9.1",
     "gulp-uglify": "^2.0.0",
     "gulp-util": "^3.0.7",
+    "normalize.css": "^5.0.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.7.0"
@@ -34,6 +35,7 @@
   "dependencies": {
     "deck.gl": "^3.0.10",
     "fluxx": "^0.14.13",
+    "gulp-stylus": "^2.6.0",
     "immutable": "^3.8.1",
     "lodash.debounce": "^4.0.8",
     "luma.gl": "^2.10.0",

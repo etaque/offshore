@@ -11,7 +11,7 @@ export default class Board extends React.Component {
 
   render () {
     return (
-      <aside>
+      <aside className="board">
         <fieldset>
           <legend>Inputs</legend>
           <InputRudder />

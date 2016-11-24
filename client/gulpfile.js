@@ -7,12 +7,13 @@ var browserify = require('browserify');
 var watchify = require('watchify');
 var babel = require('babelify');
 var uglify = require("gulp-uglify");
+var stylus = require('gulp-stylus');
 
 
 function compile(watch) {
   var bundler = watchify(browserify('./src/index.js', { debug: watch }).transform(babel));
 
-  function rebundle() {
+  function rebundleJS() {
     bundler.bundle()
       .on('error', function(err) { console.error(err); this.emit('end'); })
       .pipe(source('bundle.js'))
@@ -23,14 +24,24 @@ function compile(watch) {
       .pipe(gulp.dest('../public'));
   }
 
+  function rebundleCSS() {
+    gulp.src('./src/*.styl')
+      .pipe(sourcemaps.init())
+      .pipe(stylus({'include css': true}))
+      .pipe(sourcemaps.write('../public'))
+      .pipe(gulp.dest('../public'));
+  }
+
   if (watch) {
     bundler.on('update', function() {
       console.log('-> bundling...');
-      rebundle();
+      rebundleJS();
+      rebundleCSS();
     });
   }
 
-  rebundle();
+  rebundleJS();
+  rebundleCSS();
 }
 
 function watch() {
