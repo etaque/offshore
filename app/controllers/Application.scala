@@ -2,10 +2,13 @@ package controllers
 
 import dao._
 import models._
+import org.joda.time.DateTime
 import play.api.mvc._
 import services.GribLoader
+import utils.DateUtils
 
 import scala.concurrent.Future
+import scala.util.Try
 
 
 
@@ -21,10 +24,16 @@ object Application extends Controller {
   /**
     * Loads the last GRIB file.
     */
-  def load = Action.async { implicit request =>
-    val start = System.nanoTime
-    GribLoader.load()
-    println((System.nanoTime - start) / 1e6)
+  def load(start: String = "", end: String = "") = Action.async { implicit request =>
+    val startPerf = System.nanoTime
+    val startDateOpt = DateUtils.toDateTime(start)
+    val endDateOpt = DateUtils.toDateTime(end)
+    (startDateOpt, endDateOpt) match {
+      case (Some(startDate), Some(endDate)) => GribLoader.load(startDate, endDate)
+      case (Some(date), None) => GribLoader.load(date)
+      case _ => GribLoader.load()
+    }
+    println((System.nanoTime - startPerf) / 1e6)
     Future.successful(Ok("Done."))
   }
 

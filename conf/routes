@@ -1,5 +1,5 @@
 GET         /                                                  controllers.Application.index
-GET         /load                                              controllers.Application.load
+GET         /load                                              controllers.Application.load(start: String ?= "", end: String ?= "")
 GET         /world                                             controllers.Application.world
 
 GET         /ws/socket                                         controllers.Websocket.socket
