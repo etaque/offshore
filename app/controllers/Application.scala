@@ -1,16 +1,15 @@
 package controllers
 
 import java.io.{File, FileOutputStream}
+import java.time.LocalDateTime
 
 import scala.concurrent.Future
-
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc._
-
 import models._
 import dao._
 import org.joda.time.DateTime
-import play.api.libs.ws.{WS}
+import play.api.libs.ws.WS
 import utils.Conf
 import play.api.libs.iteratee._
 import play.api.libs.ws.ning._
@@ -60,9 +59,11 @@ object Application extends Controller {
     for {
       file <- downloadGfsFile
     } yield {
-      1.to(20).map { n =>
-        val cells = services.GribExtractor.extract(file.getPath, n)
-        WindCellsDAO.copy(cells)
+      val snapshotOpt = WindCellsDAO.createSnapshot(LocalDateTime.now(), file.getName)
+      snapshotOpt.foreach { snapshot =>
+        val cells = services.GribExtractor.extract(file.getPath, snapshot.id)
+        WindCellsDAO.copyCells(cells)
+        WindCellsDAO.refreshWindInfo()
       }
     }
 
