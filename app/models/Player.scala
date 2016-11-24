@@ -1,6 +1,10 @@
 package models
 
 case class Player(
+ id: Long,
  name: String,
- position: Position
+ window: Window,
+ boat: Boat
 )
+
+case class Window(latitude: Double, longitude: Double, width: Double, height: Double)

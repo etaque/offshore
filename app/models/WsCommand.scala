@@ -5,7 +5,7 @@ import play.api.libs.json._
 sealed trait WsCommand
 
 // Client to server
-case class MoveWindow(latitude: Double, longitude: Double, width: Double, height: Double) extends WsCommand
+case class MoveWindow(windows: Window) extends WsCommand
 
 case class Rotate(angle: Long) extends WsCommand
 
@@ -39,7 +39,7 @@ object WsCommand {
       (json \ "height").toOption
     ) match {
       case (Some(JsNumber(latitude)), Some(JsNumber(longitude)), Some(JsNumber(width)), Some(JsNumber(height))) =>
-        Some(MoveWindow(latitude.doubleValue(), longitude.doubleValue(), width.doubleValue(), height.doubleValue()))
+        Some(MoveWindow(Window(latitude.doubleValue(), longitude.doubleValue(), width.doubleValue(), height.doubleValue())))
       case _ => None
     }
   }
