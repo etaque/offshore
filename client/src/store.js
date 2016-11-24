@@ -19,7 +19,10 @@ export const store = GlobalStore({
       zoom: 3,
       startDragLngLat: null,
       isDragging: false
-    }
+    },
+    wind: [
+      [38, -46, 10, 10] // lat, lng, u, v
+    ]
   },
 
   handlers: {

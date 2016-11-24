@@ -7,6 +7,7 @@ import MapGL from 'react-map-gl';
 import connect from 'fluxx/lib/ReactConnector';
 
 import { actions, store } from './store';
+import WindOverlay from './WindOverlay';
 
 class App extends React.Component {
 
@@ -46,7 +47,9 @@ class App extends React.Component {
     return h(MapGL, R.mergeAll([{
       mapboxApiAccessToken: 'pk.eyJ1IjoiZWxvaXNhbnQiLCJhIjoiY2l2dGt6MDJoMDAyYzJ6bDRmMXdtNWE2ciJ9.ph6CziqSFFnHUzc35qvuzw',
       onChangeViewport: this._onChangeViewport
-    }, this.props.dimensions, this.props.viewport]));
+    }, this.props.dimensions, this.props.viewport]), [
+      h(WindOverlay)
+    ]);
   }
 
 }
