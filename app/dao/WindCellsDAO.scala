@@ -1,15 +1,11 @@
 package dao
 
-import java.sql.{Connection, DriverManager}
-import java.time.LocalDateTime
-
 import anorm.SqlParser._
 import anorm._
 import models._
+import org.joda.time.DateTime
 import org.postgresql.copy.PGCopyOutputStream
-import org.postgresql.core.BaseConnection
 import play.api.Play.current
-import play.api._
 import play.api.db.DB
 
 
@@ -31,7 +27,7 @@ object WindCellsDAO {
     }
   }
 
-  def createSnapshot(timestamp: LocalDateTime, gribFilename: String): Option[Snapshot] = {
+  def createSnapshot(timestamp: DateTime, gribFilename: String): Option[Snapshot] = {
     DB.withConnection { implicit c =>
       SQL"INSERT INTO snapshots(id, timestamp, grib_filename) VALUES(nextval('snapshot_id_serial'), $timestamp, $gribFilename)"
         .executeInsert(scalar[Long].singleOpt)

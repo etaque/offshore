@@ -1,5 +1,5 @@
 package models
 
-import java.time.LocalDateTime
+import org.joda.time.DateTime
 
-case class Snapshot(id: Long, timestamp: LocalDateTime, gribFilename: String)
+case class Snapshot(id: Long, timestamp: DateTime, gribFilename: String)
