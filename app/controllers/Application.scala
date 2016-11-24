@@ -20,6 +20,10 @@ import play.api.libs.ws.ning._
 object Application extends Controller {
 
   def index = Action.async { implicit request =>
+    Future.successful(Ok(views.html.Application.index()))
+  }
+
+  def cells = Action.async { implicit request =>
     val start = System.nanoTime
     val cellsInBox = WindCellsDAO.inBox(1L, Box(Position(0, 0), Position(30, 30)))
     println((System.nanoTime - start) / 1e6)
@@ -70,9 +74,4 @@ object Application extends Controller {
     Future.successful(Ok("Done."))
   }
 
-  def world = Action.async { implicit request =>
-    Future.successful(Ok(views.html.Application.world()))
-  }
-
 }
-
