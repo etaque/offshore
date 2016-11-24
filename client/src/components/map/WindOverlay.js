@@ -37,14 +37,19 @@ class WindOverlay extends React.Component {
   getData() {
     return R.map((windCell) => {
       // offset is used to prevent all segments to start and end at the same place
-      const offset = Math.abs(this.state.time + Math.round(windCell[1])*10 + Math.round(windCell[0])*10) % 50;
-      const long = windCell[1] + 0.05 * offset;
-      const lat = windCell[0] + 0.05 * offset;
-      const opacity = 255 - (Math.abs(offset - 25) * 255 / 25);
+      // We generate a [-25, 25] value so the segment occillate around its position
+      const offset = Math.abs(this.state.time + Math.round(windCell[1])*10 + Math.round(windCell[0])*10) % 50 - 25;
+      const u = windCell[2];
+      const v = windCell[3] / (4 * this.props.zoom); // normalized, otherwise segments are too big when zooming
+      const long = windCell[1] + (0.1 * offset * Math.cos(u) / this.props.zoom);
+      const lat = windCell[0] + (0.1 * offset * Math.sin(u) / this.props.zoom);
+      const opacity = 255 - (Math.abs(offset) * 255 / 25);
+      const red = Math.abs(windCell[3]) * 255 / 15;
+      const blue = 255 - red;
       return {
         sourcePosition: [long, lat],
-        targetPosition: [long + 1, lat + 1],
-        color: [0, 0, 150, opacity]
+        targetPosition: [long + (v * Math.cos(u)), lat + (v * Math.sin(u))],
+        color: [red, 0, blue, opacity]
       };
     }, this.props.wind);
   }
