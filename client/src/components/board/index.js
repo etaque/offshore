@@ -12,12 +12,12 @@ export default class Board extends React.Component {
   render () {
     return (
       <aside className="board">
-        <fieldset>
+        <fieldset className="board__inputs">
           <legend>Inputs</legend>
           <InputRudder />
           <InputSails />
         </fieldset>
-        <fieldset>
+        <fieldset className="board__outputs">
           <legend>Outputs</legend>
           <OutputCompass />
           <OutputRelativeWind />
