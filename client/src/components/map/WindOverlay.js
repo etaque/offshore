@@ -6,7 +6,7 @@ import TWEEN from 'tween.js';
 import connect from 'fluxx/lib/ReactConnector';
 
 import WindLayer from './WindLayer';
-import { store } from './Store';
+import { store } from '../../stores';
 
 class WindOverlay extends React.Component {
 

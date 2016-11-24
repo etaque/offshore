@@ -3,6 +3,6 @@ import "babel-polyfill";
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import App from './app';
+import Layout from './layouts/onboard';
 
-ReactDOM.render(React.createElement(App, {}), document.getElementById('container'));
+ReactDOM.render(React.createElement(Layout, {}), document.getElementById('container'));

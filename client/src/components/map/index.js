@@ -7,7 +7,7 @@ import h from 'react-hyperscript';
 import MapGL from 'react-map-gl';
 import connect from 'fluxx/lib/ReactConnector';
 
-import { actions, store } from './Store';
+import { actions, store } from '../../stores';
 import WindOverlay from './WindOverlay';
 
 function animate(time) {
@@ -15,7 +15,7 @@ function animate(time) {
   TWEEN.update(time);
 }
 
-class App extends React.Component {
+class Map extends React.Component {
 
   updateDimensions = debounce(() => {
     actions.updateDimensions({
@@ -61,4 +61,4 @@ class App extends React.Component {
 
 }
 
-export default connect(App, store, state => state);
+export default connect(Map, store, state => state);
