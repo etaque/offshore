@@ -15,6 +15,11 @@ function animate(time) {
   TWEEN.update(time);
 }
 
+function wsurl(s) {
+  var l = window.location;
+  return ((l.protocol === "https:") ? "wss://" : "ws://") + l.host + l.pathname + s;
+}
+
 class Map extends React.Component {
 
   updateDimensions = debounce(() => {
@@ -31,10 +36,15 @@ class Map extends React.Component {
   componentDidMount = () => {
     window.addEventListener("resize", this.updateDimensions);
     animate();
+    this.ws = new WebSocket(wsurl('/meteo'));
+    this.ws.onmessage = function(event) {
+      // TODO: Update the wind state from the info the server sent us
+    };
   }
 
   componentWillUnmount = () => {
     window.removeEventListener("resize", this.updateDimensions);
+    this.ws.close();
   }
 
   _onChangeViewport = (opt) => {
@@ -48,6 +58,8 @@ class Map extends React.Component {
       startDragLngLat: opt.startDragLngLat,
       isDragging: opt.isDragging
     });
+    // TODO: Send info to the server
+    // this.ws.send(JSON.stringify({}));
   }
 
   render() {
