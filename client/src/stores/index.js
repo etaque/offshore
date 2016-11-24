@@ -18,9 +18,9 @@ export const store = GlobalStore({
     startDragLngLat: null,
     isDragging: false,
     wind: [
-      [38, -46, 10, 10], // lat, lng, u, v
-      [35, -86, 10, 10], // lat, lng, u, v
-      [33, -84, 10, 10] // lat, lng, u, v
+      [38, -46, 3.4000000953674316, 10.600000381469727], // lat, lng, u, v
+      [35, -86, -4.699999809265137,4.400000095367432], // lat, lng, u, v
+      [33, -84, -2.799999952316284, -4.099999904632568] // lat, lng, u, v
     ],
     boat:[47.106535, -2.112102, 0] // lat, long, direction
   },

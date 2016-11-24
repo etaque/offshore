@@ -5,6 +5,8 @@ project/target
 target
 tmp
 .history
+.tags
+.tags*
 /.idea
 /*.iml
 /*.ipr

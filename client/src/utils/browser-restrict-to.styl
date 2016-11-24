@@ -1,0 +1,44 @@
+@import '_contains';
+
+// UGLY Browsers hacks here :
+// ( is there a better use for them ? -_^ )
+browser-restrict-to(){
+  $browserList = arguments;
+
+  if(length($browserList) == 0){
+    {block}
+  } else {
+
+    if(_contains($browserList, webkit)){
+      // http://browserhacks.com/#hack-f4ade0540d8e891e8190065f75acb186
+      &:not(*:root) {
+        {block}
+      }
+    }
+
+    if(_contains($browserList, moz)){
+      // http://browserhacks.com/#hack-8e9b5504d9fda44ec75169381b3c3157
+      @supports (-moz-appearance:meterbar) {
+        {block}
+      }
+    }
+
+    if(_contains($browserList, ms)){
+      // http://browserhacks.com/#hack-f1070533535a12744a0381a75087a915
+      / {
+        _:-ms-input-placeholder,
+        :root & {
+          {block}
+        }
+      }
+      // http://browserhacks.com/#hack-d19e53a0fdfba5ec0f283ae86175a3af
+      / {
+        _:-ms-fullscreen,
+        :root & {
+          {block}
+        }
+      }
+    }
+
+  }
+}

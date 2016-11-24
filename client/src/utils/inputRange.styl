@@ -1,0 +1,220 @@
+@import '_contains';
+@import 'browser-restrict-to';
+
+$defaultBrowserList ?= webkit, moz, ms;
+
+__range-track() {
+  $browserList = arguments;
+  if(length($browserList) == 0){ $browserList = $defaultBrowserList}
+
+  if(_contains($browserList, webkit)){
+    &::-webkit-slider-runnable-track {
+      {block}
+    }
+  }
+  if(_contains($browserList, moz)){
+    &::-moz-range-track {
+      {block}
+    }
+  }
+  if(_contains($browserList, ms)){
+    &::-ms-track {
+      {block}
+    }
+  }
+
+}
+
+
+__range-thumb() {
+  $browserList = arguments;
+  if(length($browserList) == 0){ $browserList = $defaultBrowserList}
+
+  if(_contains($browserList, webkit)){
+    &::-webkit-slider-thumb {
+      {block}
+    }
+  }
+  if(_contains($browserList, moz)){
+    &::-moz-range-thumb {
+      {block}
+    }
+  }
+  if(_contains($browserList, ms)){
+    &::-ms-thumb {
+      {block}
+    }
+  }
+}
+
+__range-fill-lower() {
+  $browserList = arguments;
+  if(length($browserList) == 0){ $browserList = $defaultBrowserList}
+
+  if(_contains($browserList, webkit)){
+    &::-webkit-slider-thumb::before {
+      {block}
+    }
+  }
+  if(_contains($browserList, moz)){
+    &::-moz-range-progress {
+      {block}
+    }
+  }
+  if(_contains($browserList, ms)){
+    &::-ms-fill-lower {
+      {block}
+    }
+  }
+}
+
+__range-fill-upper() {
+  $browserList = arguments;
+  if(length($browserList) == 0){ $browserList = $defaultBrowserList}
+
+  if(_contains($browserList, ms)){
+    &::-ms-fill-upper {
+      {block}
+    }
+  }
+}
+
+// Usefull only on webkit.
+__range-track-outline() {
+  $browserList = arguments;
+  if(length($browserList) == 0){ $browserList = $defaultBrowserList}
+
+  if(_contains($browserList, webkit)){
+    &::-webkit-slider-runnable-track::after {
+      {block}
+    }
+  }
+}
+
+// Usefull only on ms.
+__range-ticks() {
+  $browserList = arguments;
+  if(length($browserList) == 0){ $browserList = $defaultBrowserList}
+
+  if(_contains($browserList, ms)){
+    &::-ms-ticks-before {
+      {block}
+    }
+    &::-ms-ticks-after {
+      {block}
+    }
+  }
+}
+
+__range-tooltip() {
+  $browserList = arguments;
+  if(length($browserList) == 0){ $browserList = $defaultBrowserList}
+
+  if(_contains($browserList, ms)){
+    &::-ms-tooltip {
+      {block}
+    }
+  }
+}
+
+
+__range-thumb__margin-top($margin){
+  +__range-thumb( webkit ) {
+    margin-top: $margin;
+    &::before {
+      margin-top: ($margin * -1);
+    }
+  }
+}
+
+--range-reset() {
+  $browserList = arguments;
+
+  +browser-restrict-to($browserList){
+    &, & /deep/ * {
+      &, &::before, &::after {
+        box-sizing: border-box;
+      }
+    }
+    & /deep/ * {
+      position: relative;
+    }
+  }
+
+  if(length($browserList) == 0){ $browserList = $defaultBrowserList}
+
+  if(_contains($browserList, webkit)) or (_contains($browserList, moz)) {
+    // Webkit/Gecko :
+    +browser-restrict-to($browserList){
+      font-size: 1em;
+    }
+  }
+
+  if(_contains($browserList, webkit)) {
+  // Webkit reset :
+    +browser-restrict-to(webkit){
+      -webkit-appearance: none;
+      &:focus {
+        outline: 0;
+      }
+    }
+  }
+
+  +__range-track($browserList) {
+    // overflow: visible;
+  }
+
+  if(_contains($browserList, webkit)) {
+    &::-webkit-slider-runnable-track {
+      -webkit-appearance: none;
+      position: relative;
+      z-index: 1;
+
+      &::after {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: inherit;
+        height: inherit;
+        border-radius: inherit;
+        z-index: -1;
+      }
+    }
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      position: relative;
+      // z-index: -1;
+      text-align: center;
+      &::before {
+        position: absolute;
+        content: "";
+        transform: translate(-100%, -50%);
+        display: block;
+        z-index: -1;
+        left: 0;
+        top: 50%;
+      }
+    }
+  }
+
+  if(_contains($browserList, moz)) {
+    // Gecko reset :
+    &::-moz-range-track {
+      z-index: -1;
+    }
+  }
+
+  if(_contains($browserList, ms)) {
+    // IE reset :
+    &::-ms-track {
+      border: 0;
+      color: transparent;
+    }
+
+    &::-ms-fill-lower {
+      background: transparent;
+    }
+  }
+}
