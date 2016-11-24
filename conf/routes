@@ -2,4 +2,7 @@ GET         /                                                  controllers.Appli
 GET         /load                                              controllers.Application.load
 GET         /world                                             controllers.Application.world
 
+GET         /ws/socket                                         controllers.Websocket.socket
+
+
 GET  /assets/*file        controllers.Assets.at(path="/public", file)
