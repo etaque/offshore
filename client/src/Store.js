@@ -9,17 +9,13 @@ export const actions = {
 export const store = GlobalStore({
 
   state: {
-    dimensions: {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    },
-    viewport: {
-      latitude: 38,
-      longitude: -46,
-      zoom: 3,
-      startDragLngLat: null,
-      isDragging: false
-    },
+    width: window.innerWidth,
+    height: window.innerHeight,
+    latitude: 38,
+    longitude: -46,
+    zoom: 3,
+    startDragLngLat: null,
+    isDragging: false,
     wind: [
       [38, -46, 10, 10] // lat, lng, u, v
     ]
@@ -27,12 +23,10 @@ export const store = GlobalStore({
 
   handlers: {
     [actions.setViewport]: (state, viewport) => {
-      return R.merge(state, {
-        viewport: R.merge(state.viewport, viewport)
-      });
+      return R.merge(state, viewport);
     },
     [actions.updateDimensions]: (state, dimensions) => {
-      return R.merge(state, {dimensions});
+      return R.merge(state, dimensions);
     }
   }
 });

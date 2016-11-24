@@ -1,10 +1,11 @@
+import R from 'ramda';
 import React from 'react';
 import ViewportMercator from 'viewport-mercator-project';
 
 import h from 'react-hyperscript';
 import connect from 'fluxx/lib/ReactConnector';
 
-import { store } from './store';
+import { store } from './Store';
 
 function round(x, n) {
   const tenN = Math.pow(10, n);
@@ -22,14 +23,12 @@ class WindOverlay extends React.Component {
   }
 
   _redraw() {
-    const { width, height } = this.props.dimensions;
-    const { wind } = this.props;
-    const dotRadius = 5;
+    const { width, height, wind } = this.props;
+    const dotRadius = 2;
 
     const mercator = ViewportMercator(this.props);
     const pixelRatio = window.devicePixelRatio || 1;
     const canvas = this.refs.overlay;
-    console.log('canvas is: ', canvas);
     const ctx = canvas.getContext('2d');
 
     ctx.save();
@@ -40,10 +39,9 @@ class WindOverlay extends React.Component {
     console.log ("draw ", wind);
     if (wind) {
       for (const windCell of wind) {
-        console.log("Add windcell = ", windCell);
-        const pixel = mercator.project([windCell[0], windCell[1]]);
-        const pixelRounded = [round(pixel[1], 1), round(pixel[1], 1)];
-        console.log('maybe draw at ', pixelRounded);
+        console.log("Add windcell = ", [windCell[1], windCell[0]]);
+        const pixel = mercator.project([windCell[1], windCell[0]]);
+        const pixelRounded = [round(pixel[0], 1), round(pixel[1], 1)];
         if (pixelRounded[0] + dotRadius >= 0 &&
             pixelRounded[0] - dotRadius < width &&
             pixelRounded[1] + dotRadius >= 0 &&
@@ -64,11 +62,11 @@ class WindOverlay extends React.Component {
     const pixelRatio = window.devicePixelRatio || 1;
     return h('canvas', {
       ref: 'overlay',
-      width: this.props.dimensions.width * pixelRatio,
-      height: this.props.dimensions.height * pixelRatio,
+      width: this.props.width * pixelRatio,
+      height: this.props.height * pixelRatio,
       style: {
-        width: `${this.props.dimensions.width}px`,
-        height: `${this.props.dimensions.height}px`,
+        width: `${this.props.width}px`,
+        height: `${this.props.height}px`,
         position: 'absolute',
         pointerEvents: 'none',
         opacity: 0.7,
