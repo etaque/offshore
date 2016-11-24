@@ -18,7 +18,8 @@ export const store = GlobalStore({
     isDragging: false,
     wind: [
       [38, -46, 10, 10], // lat, lng, u, v
-      [38, -86, 10, 10] // lat, lng, u, v
+      [35, -86, 10, 10], // lat, lng, u, v
+      [33, -84, 10, 10] // lat, lng, u, v
     ]
   },
 
