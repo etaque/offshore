@@ -11,6 +11,6 @@ object Websocket extends Controller {
 
   def socket = WebSocket.acceptWithActor[JsValue, JsValue] { request => out =>
 
-    UserActor.props(out)
+    UserActor.props(out, s"Player ${scala.util.Random.nextInt}")
   }
 }

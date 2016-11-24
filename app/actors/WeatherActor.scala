@@ -5,22 +5,27 @@ import akka.event.LoggingReceive
 import models.{MoveWindow, Rotate}
 import play.api.Logger
 
-case object Join
-case object Leave
+import scala.concurrent.duration._
+
+case class Join(user: String)
+case class Leave(user: String)
+case object Positions
 
 class WeatherActor extends Actor with ActorLogging {
 
-  var subscribers = Set[ActorRef]()
+  protected[this] var subscribers = Map[ActorRef, String]()
+
+  context.system.scheduler.schedule(Duration.Zero, 33.millis, self, Positions)(context.system.dispatcher)
 
   def receive = LoggingReceive {
 
-    case Join =>
-      Logger.info("A new user has joined the game !")
-      subscribers += sender
+    case Join(user) =>
+      Logger.info(s"$user has joined the game !")
+      subscribers += (sender -> user)
 
-    case Leave =>
-      Logger.info("An user has left the game !")
-      subscribers -= sender
+    case Leave(user) =>
+      Logger.info(s"$user has left the game !")
+      subscribers - sender
 
     case MoveWindow =>
 
@@ -29,6 +34,9 @@ class WeatherActor extends Actor with ActorLogging {
     case Rotate =>
 
       //TODO
+
+    case Positions =>
+
 
     case _ =>
       Logger.debug("Invalid input")

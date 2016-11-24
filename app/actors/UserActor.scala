@@ -5,21 +5,21 @@ import akka.event.LoggingReceive
 import models.{WsCommand, _}
 import play.api.Logger
 import play.api.libs.concurrent.Akka
-import play.api.libs.json.{JsString, JsValue}
+import play.api.libs.json.JsValue
 import play.api.Play.current
 
 object UserActor {
 
   val weather = Akka.system.actorOf(Props[WeatherActor], "weather")
 
-  def props(out: ActorRef) = Props(new UserActor(out, weather))
+  def props(out: ActorRef, user: String) = Props(new UserActor(out, weather, user))
 }
 
-class UserActor(out: ActorRef, weather: ActorRef) extends Actor with ActorLogging {
+class UserActor(out: ActorRef, weather: ActorRef, user: String) extends Actor with ActorLogging {
 
-  override def preStart() = weather ! Join
+  override def preStart() = weather ! Join(user)
 
-  override def postStop() = weather ! Leave
+  override def postStop() = weather ! Leave(user)
 
   def receive = LoggingReceive {
 
