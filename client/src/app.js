@@ -1,5 +1,6 @@
 import R from 'ramda';
 import debounce from 'lodash.debounce';
+import TWEEN from 'tween.js';
 
 import React from 'react';
 import h from 'react-hyperscript';
@@ -8,6 +9,11 @@ import connect from 'fluxx/lib/ReactConnector';
 
 import { actions, store } from './Store';
 import WindOverlay from './WindOverlay';
+
+function animate(time) {
+  requestAnimationFrame(animate);
+  TWEEN.update(time);
+}
 
 class App extends React.Component {
 
@@ -24,6 +30,7 @@ class App extends React.Component {
 
   componentDidMount = () => {
     window.addEventListener("resize", this.updateDimensions);
+    animate();
   }
 
   componentWillUnmount = () => {
