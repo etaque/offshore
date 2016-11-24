@@ -2,10 +2,10 @@ import R from 'ramda';
 import h from 'react-hyperscript';
 import React from 'react';
 import DeckGL from 'deck.gl/react';
+import { LineLayer } from 'deck.gl';
 import TWEEN from 'tween.js';
 import connect from 'fluxx/lib/ReactConnector';
 
-import WindLayer from './WindLayer';
 import { store } from './Store';
 
 class WindOverlay extends React.Component {
@@ -16,12 +16,11 @@ class WindOverlay extends React.Component {
     const thisDemo = this;
 
     this.state = {
-      time: 0
+      offset: 0
     };
-    this.tween = new TWEEN.Tween({time: 0})
-      .to({time: 3600}, 120000)
+    this.tween = new TWEEN.Tween({offset: 0})
+      .to({offset: 50}, 2000)
       .onUpdate(function() {
-        console.log('now state is: ', this);
         thisDemo.setState(this);
       })
       .repeat(Infinity);
@@ -35,19 +34,23 @@ class WindOverlay extends React.Component {
     this.tween.stop();
   }
 
+  getData() {
+    return R.map((windCell) => {
+      const long = windCell[1] + 0.05 * this.state.offset,
+            lat = windCell[0] + 0.05 * this.state.offset;
+      return {
+        sourcePosition: [long, lat],
+        targetPosition: [long + 1, lat + 1]
+      };
+    }, this.props.wind);
+  }
+
   render() {
     return h(DeckGL, R.merge({
-      layers: [new WindLayer({
+      layers: [new LineLayer({
         id: 'wind',
-        data: [
-          [38, -46, 10, 10] // lat, lng, u, v
-        ],
-        getPath: d => d.segments,
-        getColor: d => d.vendor === 0 ? [253,128,93] : [23,184,190],
-        opacity: 0.3,
-        strokeWidth: 2,
-        trailLength: 180,
-        currentTime: this.state.time
+        data: this.getData(),
+        getColor: () => [0, 0, 150, 180]
       })]
     }, this.props));
   }
