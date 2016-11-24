@@ -36,6 +36,7 @@ class Map extends React.Component {
 
   componentDidMount = () => {
     window.addEventListener("resize", this.updateDimensions);
+    document.addEventListener("keydown", this.updateBoatDirection, false);
     animate();
     this.ws = new WebSocket(wsurl('/meteo'));
     this.ws.onmessage = function(event) {
@@ -45,6 +46,7 @@ class Map extends React.Component {
 
   componentWillUnmount = () => {
     window.removeEventListener("resize", this.updateDimensions);
+    document.removeEventListener("keydown", this.updateBoatDirection, false);
     this.ws.close();
   }
 
@@ -61,6 +63,16 @@ class Map extends React.Component {
     });
     // TODO: Send info to the server
     // this.ws.send(JSON.stringify({}));
+  }
+
+  updateBoatDirection = (event) => {
+    const { boat } = this.props;
+    const arbitraryPad =  5;
+    const newBoat = event.keyCode == 37 ? [boat[0], boat[1], boat[2] + arbitraryPad] : ( event.keyCode == 39 ? [boat[0], boat[1], boat[2] - arbitraryPad] : [boat[0], boat[1], boat[2]]);
+
+    actions.updateBoatDirection({
+      boat: newBoat
+    });
   }
 
   render() {

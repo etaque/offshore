@@ -11,28 +11,17 @@ class BoatOverlay extends React.Component {
 
   constructor(props) {
     super(props);
-    this._handleKeyDown = this._handleKeyDown.bind(this);
   }
 
   componentDidMount() {
     this._redraw();
-    document.addEventListener("keydown", this._handleKeyDown, false);
   }
 
   componentDidUpdate() {
     this._redraw();
   }
 
-  _handleKeyDown(event){
-    console.log(this.props);
-    const { boat } = this.props;
 
-    const newBoat = event.keyCode == 37 ? [boat[0], boat[1],boat[2]-1] : ( event.keyCode == 39 ? [boat[0], boat[1],boat[2]+1] : [boat[0], boat[1],boat[2]]);
-
-    actions.updateBoatDirection({
-      boat: newBoat
-    });
-  }
 
   _redraw() {
     const { width, height, boat } = this.props;
@@ -52,18 +41,18 @@ class BoatOverlay extends React.Component {
     ctx.scale(pixelRatio, pixelRatio);
     ctx.clearRect(0, 0, width, height);
     ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
 
     if (boat) {
       const pixel = mercator.project([boat[1], boat[0]]);
-
-
-      //ctx.translate(ctx.canvas.width/2, + ctx.canvas.height/2);
-      //ctx.rotate(180*TO_RADIANS);
-      ctx.drawImage(img, pixel[0], pixel[1], displayWidth, displayHeight);
-
+      const ctxBoat = canvas.getContext('2d');
+      ctxBoat.save();
+      ctxBoat.scale(pixelRatio, pixelRatio);
+      ctxBoat.translate(pixel[0], pixel[1]);
+      ctxBoat.rotate(boat[2]*TO_RADIANS);
+      ctxBoat.drawImage(img,-(0+displayWidth/2),-(0+displayHeight/2), displayWidth, displayHeight);
+      ctxBoat.restore();
     }
-
-    ctx.restore();
   }
 
   render() {
