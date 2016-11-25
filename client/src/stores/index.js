@@ -18,7 +18,8 @@ export const actions = {
   updatePlayer: Action('updatePlayer'),
   updateBoatDirection: Action('updateBoatDirection'),
   resetWindTrails: Action('resetWindTrails'),
-  stepTrails: Action('stepTrails')
+  stepTrails: Action('stepTrails'),
+  fakeBoatMovement: Action('fakeBoatMovement')
 };
 
 function wsurl(s) {
@@ -77,7 +78,7 @@ export const store = GlobalStore({
     },
     windCells: [],
     windTrails: [],
-    boat:[46.483619, -1.785940, 0], // lat, long, direction
+    boat:[46.483619, -1.785940, 90], // lat, long, direction
     player: {
       name: "Anonymous",
       color: "red"
@@ -109,7 +110,7 @@ export const store = GlobalStore({
         }
       }));
 
-      return state;
+      return R.merge(state, boatInfo);
     },
     [actions.receiveUpdateBoatDirection]: (state, newBoatInfo)=> {
       return R.merge(state, newBoatInfo);
@@ -122,6 +123,7 @@ export const store = GlobalStore({
       return R.merge(state, player);
     },
     [actions.updateWindCells]: (state, windCells) => {
+      console.log('updateWindCells');
       return R.merge(state, {
         windCells: windCells,
         geoStore: makeGeoStore(windCells)
@@ -149,6 +151,14 @@ export const store = GlobalStore({
         return trail;
       }, state.windTrails);
       return R.merge(state, { windTrails: windTrails });
+    },
+    [actions.fakeBoatMovement]: (state) => {
+      let angle = (90 - state.boat[2]) * (Math.PI / 180);
+      return R.merge(state, {boat: [
+        state.boat[0] + 0.2 * Math.sin(angle),
+        state.boat[1] - 0.2 * Math.cos(angle),
+        state.boat[2]
+      ]});
     }
   }
 
