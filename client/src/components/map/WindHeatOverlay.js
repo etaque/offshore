@@ -10,7 +10,9 @@ class WindHeatOverlay extends React.Component {
 
   render() {
     return h(HeatmapOverlay, {
-      locations: this.props.windCells
+      locations: this.props.windCells,
+      lngLatAccessor: (cell) => cell.position,
+      intensityAccessor: (cell) => cell.force
     });
   }
 
