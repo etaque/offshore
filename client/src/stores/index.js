@@ -28,13 +28,20 @@ function wsurl(s) {
 }
 var ws = new WebSocket(wsurl('ws/socket'));
 ws.onopen = function() {
+  const mercator = ViewportMercator(store.state.viewport);
+  const topleft = mercator.unproject(0, 0);
+  const bottomright = mercator.project(store.state.viewport.height, store.state.viewport.width);
   ws.send(JSON.stringify({
     command: "moveWindow",
     value: {
-      latitude: store.state.viewport.latitude,
-      longitude: store.state.viewport.longitude,
-      height: store.state.viewport.height,
-      width: store.state.viewport.width
+      p1: {
+        latitude: topleft[1],
+        longitude: topleft[0]
+      },
+      p2: {
+        latitude: bottomright[1],
+        longitude: bottomright[0]
+      }
     }
   }));
 };
@@ -76,6 +83,7 @@ export const store = GlobalStore({
       startDragLngLat: null,
       isDragging: false
     },
+    windUpdate: 0,
     windCells: [],
     windTrails: [],
     boat:[46.483619, -1.785940, 90], // lat, long, direction
@@ -117,14 +125,13 @@ export const store = GlobalStore({
     },
     [actions.updatePlayer]: (state, player) => {
       ws.send(JSON.stringify({
-        command: "updatePlayer",
         value: player
       }));
       return R.merge(state, player);
     },
     [actions.updateWindCells]: (state, windCells) => {
-      console.log('updateWindCells');
       return R.merge(state, {
+        windUpdate: Date.now(),
         windCells: windCells,
         geoStore: makeGeoStore(windCells)
       });
@@ -136,12 +143,12 @@ export const store = GlobalStore({
       return R.merge(state, { windTrails: initialTrails(state.viewport) });
     },
     [actions.stepTrails]: (state) => {
-      const step = 0.05 / (state.viewport.zoom * state.viewport.zoom);
+      const step = 0.1 / (state.viewport.zoom * state.viewport.zoom);
       const windTrails = R.map((trail) => {
         let last = trail.tail[0];
-        const wind = getWindOnPoint() || { origin: 200, speed: 10 + 20 * Math.random() };
+        const wind = getWindOnPoint(Math.round(last[1]), Math.round(last[0])) || { origin: 200, speed: 0 };
         let speed = wind.speed;
-        if (trail.tail.length > 10 + speed) {
+        if (trail.tail.length > 30 + speed) {
           trail.tail = [trail.origin];
         } else {
           let angle = wind.origin * (Math.PI / 180);
@@ -169,7 +176,7 @@ function makeGeoStore(windCells) {
   windCells.map(cell => {
     geoStore[cell.latitude + "," + cell.longitude] = cell;
   });
-
+  console.log('geoStore', geoStore);
   return geoStore;
 }
 
@@ -184,7 +191,7 @@ ws.onmessage = function(event) {
   switch(data.command) {
   case 'refreshWind':
     console.log("received wind data");
-    actions.updateWindCells(data.values);
+    actions.updateWindCells(data.value);
     break;
   case 'refreshBoat':
     console.log("refresh boat data");
