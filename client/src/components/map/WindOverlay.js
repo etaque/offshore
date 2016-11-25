@@ -1,66 +1,125 @@
-import R from 'ramda';
-import h from 'react-hyperscript';
 import React from 'react';
-import DeckGL from 'deck.gl/react';
-import { LineLayer } from 'deck.gl';
+import debounce from 'lodash.debounce';
+import ViewportMercator from 'viewport-mercator-project';
 import TWEEN from 'tween.js';
+
+import h from 'react-hyperscript';
 import connect from 'fluxx/lib/ReactConnector';
 
 import { store } from '../../stores';
 
+function round(x, n) {
+  const tenN = Math.pow(10, n);
+  return Math.round(x * tenN) / tenN;
+}
+
 class WindOverlay extends React.Component {
 
   constructor(props) {
+    console.log('construct WindOverlay');
     super(props);
 
-    const thisDemo = this;
+    this.state = this.initialState();
 
-    this.state = {
-      time: 0
-    };
+    /* const self = this;
     this.tween = new TWEEN.Tween({time: 0})
-      .to({time: 50}, 2000)
-      .onUpdate(function() {
-        thisDemo.setState(this);
-      })
-      .repeat(Infinity);
+    .to({time: 50}, 2000)
+    .onUpdate(function() {
+      self.setState(this);
+    })
+    .repeat(Infinity);*/
+  }
+
+  initialState() {
+    const mercator = ViewportMercator(this.props);
+
+    let points = [];
+    const stepX = 50; // pixels
+    const stepY = 50; // pixels
+    let x = 0, y = 0;
+
+    while (x < this.props.width) {
+      y = 0;
+      while (y < this.props.height) {
+        points.push({
+          origin: mercator.unproject([x, y]) // array of [lng, lat]
+        });
+        y = y + stepY;
+      }
+      x = x + stepX;
+    }
+
+    return {
+      points
+    };
+
   }
 
   componentDidMount() {
-    this.tween.start();
+    this._redraw();
   }
 
-  componentWillUnmount() {
-    this.tween.stop();
+  resetPoints = {
+    return debounce(() => {
+      this.setState(this.initialState());
+    }, 300);
   }
 
-  getData() {
-    return R.map((windCell) => {
-      // offset is used to prevent all segments to start and end at the same place
-      // We generate a [-25, 25] value so the segment occillate around its position
-      const offset = Math.abs(this.state.time + Math.round(windCell[1])*10 + Math.round(windCell[0])*10) % 50 - 25;
-      const u = windCell[2];
-      const v = windCell[3] / (4 * this.props.zoom); // normalized, otherwise segments are too big when zooming
-      const long = windCell[1] + (0.1 * offset * Math.cos(u) / this.props.zoom);
-      const lat = windCell[0] + (0.1 * offset * Math.sin(u) / this.props.zoom);
-      const opacity = 255 - (Math.abs(offset) * 255 / 25);
-      const red = Math.abs(windCell[3]) * 255 / 15;
-      const blue = 255 - red;
-      return {
-        sourcePosition: [long, lat],
-        targetPosition: [long + (v * Math.cos(u)), lat + (v * Math.sin(u))],
-        color: [red, 0, blue, opacity]
-      };
-    }, this.props.wind);
+  componentDidUpdate() {
+    console.log('did update');
+    // TODO: Update the state on component update
+    this._redraw();
+  }
+
+  _redraw() {
+    const mercator = ViewportMercator(this.props);
+    const { width, height } = this.props;
+    const dotRadius = 1;
+
+    const pixelRatio = window.devicePixelRatio || 1;
+    const canvas = this.refs.overlay;
+    const ctx = canvas.getContext('2d');
+
+    ctx.save();
+    ctx.scale(pixelRatio, pixelRatio);
+    ctx.clearRect(0, 0, width, height);
+    ctx.globalCompositeOperation = 'source-over';
+
+    if (this.state.points) {
+      for (const point of this.state.points) {
+        let pixel = mercator.project(point.origin);
+        if (pixel[0] + dotRadius >= 0 &&
+            pixel[0] - dotRadius < width &&
+            pixel[1] + dotRadius >= 0 &&
+            pixel[1] - dotRadius < height
+        ) {
+          ctx.fillStyle = '#F00';
+          ctx.beginPath();
+          ctx.arc(pixel[0], pixel[1], dotRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    ctx.restore();
   }
 
   render() {
-    return h(DeckGL, R.merge({
-      layers: [new LineLayer({
-        id: 'wind',
-        data: this.getData()
-      })]
-    }, this.props));
+    const pixelRatio = window.devicePixelRatio || 1;
+    return h('canvas', {
+      ref: 'overlay',
+      width: this.props.width * pixelRatio,
+      height: this.props.height * pixelRatio,
+      style: {
+        width: `${this.props.width}px`,
+        height: `${this.props.height}px`,
+        position: 'absolute',
+        pointerEvents: 'none',
+        opacity: 0.7,
+        left: 0,
+        top: 0
+      }
+    });
   }
 
 }
