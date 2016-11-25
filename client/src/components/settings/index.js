@@ -1,9 +1,28 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-export default class Settings extends React.Component {
+import connect from 'fluxx/lib/ReactConnector';
+import { actions, store } from '../../stores';
+
+import Boat from '../boat';
+
+class Settings extends React.Component {
+
+  constructor(props){
+    super(props)
+  }
+
+  updatePlayer = () => {
+    actions.updatePlayer({
+      player: {
+        name: this.refs['player.name'].value,
+        color: this.refs['player.color'].value
+      }
+    });
+  }
 
   render() {
+
     return (
       <div id="settings" className="settings">
         <a className="settings__toggle settings__toggle--onClosed" href="#settings">⚙</a>
@@ -11,13 +30,18 @@ export default class Settings extends React.Component {
         <div className="settings__content">
           <a className="settings__toggle settings__toggle--onOpened" href="#">❌</a>
 
-          <img src="/assets/media/boat.svg" width="34" height="34" style={{
-              marginLeft: "-17px",
-              marginTop: "-17px",
-              transformOrigin: '17px 17px 0'
-            }} />
-          <input type="color" />
-          <input type="text" />
+          <div className="settings__player">
+            <Boat />
+          </div>
+
+          <input type="text" ref="player.color"
+            style={{backgroundColor: this.props.player.color}}
+            defaultValue={this.props.player.color}
+            onChange={this.updatePlayer} />
+
+          <input type="text" ref="player.name"
+            defaultValue={this.props.player.name}
+            onChange={this.updatePlayer} />
 
         </div>
       </div>
@@ -25,3 +49,5 @@ export default class Settings extends React.Component {
   }
 
 }
+
+export default connect(Settings, store, state => state);

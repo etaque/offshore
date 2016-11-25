@@ -12,7 +12,8 @@ export const actions = {
   sendUpdateBoatDirection: Action('sendUpdateBoatDirection'),
   receiveUpdateBoatDirection: Action('receiveUpdateBoatDirection'),
   updateWindCells: Action('updateWindCells'),
-  closeWs: Action('closeWs')
+  closeWs: Action('closeWs'),
+  updatePlayer: Action('updatePlayer')
 };
 
 function wsurl(s) {
@@ -32,12 +33,18 @@ export const store = GlobalStore({
     zoom: 3,
     startDragLngLat: null,
     isDragging: false,
+
     wind: [
       [38, -46, 3.4000000953674316, 10.600000381469727], // lat, lng, u, v
       [35, -86, -4.699999809265137,4.400000095367432], // lat, lng, u, v
       [33, -84, -2.799999952316284, -4.099999904632568] // lat, lng, u, v
     ],
-    boat:[47.106535, -2.112102, 0] // lat, long, direction
+    boat:[47.106535, -2.112102, 0], // lat, long, direction
+
+    player: {
+      name: "Anonymous",
+      color: "red"
+    }
   },
 
   handlers: {
@@ -57,6 +64,11 @@ export const store = GlobalStore({
     [actions.receiveUpdateBoatDirection]: (state, newBoatInfo)=> {
       return R.merge(state, newBoatInfo);
     },
+
+    [actions.updatePlayer]: (state, player) => {
+      return R.merge(state, player);
+    },
+
     [actions.updateWindCells]: (state, windCells) => {
       return R.merge(state, { geoStore: makeGeoStore(windCells) });
     },
@@ -80,11 +92,18 @@ function makeGeoStore(windCells) {
 }
 
 function cellToGeoJSON(cell) {
+  const polygon = [
+    [ cell.latitude - 0.5, cell.longitude - 0.5 ],
+    [ cell.latitude - 0.5, cell.longitude + 0.5 ],
+    [ cell.latitude + 0.5, cell.longitude + 0.5 ],
+    [ cell.latitude + 0.5, cell.longitude - 0.5 ]
+  ];
+
   return {
     "type": "Feature",
     "geometry": {
-      "type": "Point",
-      "coordinates": [ cell.latitude, cell.longitude ]
+      "type": "Polygon",
+      "coordinates": polygon
     },
     "properties": {
       "origin": cell.direction,
@@ -92,6 +111,7 @@ function cellToGeoJSON(cell) {
     }
   };
 }
+
 
 ws.onmessage = function(event) {
   var data = JSON.parse(event.data);
@@ -110,3 +130,15 @@ ws.onmessage = function(event) {
   }
 
 };
+
+export function getWindOnPoint(lat, lon) {
+  const result = store.state.geoStore.contains({
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [lat, lon]
+    }
+  });
+
+  return result[0] ? result[0].properties : null;
+}
