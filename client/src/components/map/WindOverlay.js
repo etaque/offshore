@@ -33,8 +33,8 @@ class WindOverlay extends React.Component {
   }
 
   _redraw() {
-    const mercator = ViewportMercator(this.props);
-    const { width, height } = this.props;
+    const mercator = ViewportMercator(this.props.viewport);
+    const { width, height } = this.props.viewport;
     const dotRadius = 1;
 
     const pixelRatio = window.devicePixelRatio || 1;
@@ -46,7 +46,7 @@ class WindOverlay extends React.Component {
     ctx.clearRect(0, 0, width, height);
     ctx.globalCompositeOperation = 'source-over';
 
-    if (!this.props.isDragging && this.props.windTrails) {
+    if (!this.props.viewport.isDragging && this.props.windTrails) {
       for (const point of this.props.windTrails) {
         let opacity;
         if (point.tail.length > 10) {
@@ -82,11 +82,11 @@ class WindOverlay extends React.Component {
     const pixelRatio = window.devicePixelRatio || 1;
     return h('canvas', {
       ref: 'overlay',
-      width: this.props.width * pixelRatio,
-      height: this.props.height * pixelRatio,
+      width: this.props.viewport.width * pixelRatio,
+      height: this.props.viewport.height * pixelRatio,
       style: {
-        width: `${this.props.width}px`,
-        height: `${this.props.height}px`,
+        width: `${this.props.viewport.width}px`,
+        height: `${this.props.viewport.height}px`,
         position: 'absolute',
         pointerEvents: 'none',
         opacity: 0.7,

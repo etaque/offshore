@@ -44,6 +44,7 @@
     "react-dom": "^15.4.0",
     "react-hyperscript": "^2.4.2",
     "react-map-gl": "^1.7.2",
+    "react-map-gl-heatmap-overlay": "^1.1.2",
     "terraformer-geostore": "^1.0.4",
     "terraformer-geostore-memory": "^1.0.0",
     "terraformer-rtree": "^1.0.0",

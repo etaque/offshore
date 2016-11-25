@@ -9,6 +9,7 @@ import connect from 'fluxx/lib/ReactConnector';
 
 import { actions, store } from '../../stores';
 import WindOverlay from './WindOverlay';
+import WindHeatOverlay from './WindHeatOverlay';
 import BoatOverlay from './BoatOverlay';
 
 function animate(time) {
@@ -24,7 +25,7 @@ function wsurl(s) {
 class Map extends React.Component {
 
   updateDimensions = debounce(() => {
-    actions.updateDimensions({
+    actions.setViewport({
       width: window.innerWidth,
       height: window.innerHeight
     });
@@ -74,10 +75,10 @@ class Map extends React.Component {
       mapboxApiAccessToken: 'pk.eyJ1IjoiZWxvaXNhbnQiLCJhIjoiY2l2dGt6MDJoMDAyYzJ6bDRmMXdtNWE2ciJ9.ph6CziqSFFnHUzc35qvuzw',
       onChangeViewport: this._onChangeViewport
     }, this.props), [
-      h(WindOverlay), h(BoatOverlay)
+      h(WindHeatOverlay), h(WindOverlay), h(BoatOverlay)
     ]);
   }
 
 }
 
-export default connect(Map, store, state => state);
+export default connect(Map, store, state => state.viewport);
