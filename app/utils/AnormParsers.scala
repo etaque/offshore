@@ -1,8 +1,11 @@
 package utils
 
+import java.sql.Timestamp
+
 import anorm._
 import org.postgresql.geometric.{PGbox, PGpoint}
 import models._
+import org.joda.time.DateTime
 
 
 object AnormParsers {
@@ -22,6 +25,12 @@ object AnormParsers {
   implicit val boxToStatement = new ToStatement[Box] {
     def set(s: java.sql.PreparedStatement, index: Int, aValue: Box): Unit = {
       s.setObject(index, new PGbox(new PGpoint(aValue.p1.lon, aValue.p1.lat), new PGpoint(aValue.p2.lon, aValue.p2.lat)))
+    }
+  }
+
+  implicit val dateTimeToStatement = new ToStatement[DateTime] {
+    def set(s: java.sql.PreparedStatement, index: Int, aValue: DateTime): Unit = {
+      s.setTimestamp(index, new Timestamp(aValue.getMillis))
     }
   }
 

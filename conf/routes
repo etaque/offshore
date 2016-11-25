@@ -1,5 +1,8 @@
 GET         /                                                  controllers.Application.index
-GET         /load                                              controllers.Application.load
+GET         /load                                              controllers.Application.load(start: String ?= "", end: String ?= "")
 GET         /cells                                             controllers.Application.cells
+
+GET         /ws/socket                                         controllers.Websocket.socket
+
 
 GET  /assets/*file        controllers.Assets.at(path="/public", file)

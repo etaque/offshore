@@ -11,7 +11,9 @@ object Conf {
   private val conf = Play.application.configuration
 
   val gfsBaseUrl = getString("ws.gfs.baseUrl")
+  val gfsDirName = getString("ws.gfs.dirName")
   val gfsFileName = getString("ws.gfs.fileName")
+  val gfsPeriod = getInt("ws.gfs.period")
 
   private def getValue[A](getter: String => Option[A], key: String): A = getter(key).getOrElse(sys.error(s"Missing config key: $key"))
 
