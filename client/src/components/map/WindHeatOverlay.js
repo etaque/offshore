@@ -1,3 +1,4 @@
+import R from 'ramda';
 import React from 'react';
 import HeatmapOverlay from 'react-map-gl-heatmap-overlay';
 
@@ -9,11 +10,11 @@ import { store } from '../../stores';
 class WindHeatOverlay extends React.Component {
 
   render() {
-    return h(HeatmapOverlay, {
+    return h(HeatmapOverlay, R.merge({
       locations: this.props.windCells,
       lngLatAccessor: (cell) => cell.position,
       intensityAccessor: (cell) => cell.force
-    });
+    }, this.props.viewport));
   }
 
 }
