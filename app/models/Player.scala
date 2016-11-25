@@ -7,9 +7,6 @@ case class Player(
   boat: Boat
 )
 
-case class Window(latitude: Double, longitude: Double, width: Double, height: Double) {
-  def toBox: Box = Box(
-    p1 = Position(latitude, longitude),
-    p2 = Position(latitude + width, longitude + height)
-  )
+case class Window(p1: Position, p2: Position) {
+  def toBox: Box = Box(p1, p2)
 }

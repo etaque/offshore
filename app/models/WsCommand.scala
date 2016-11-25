@@ -36,13 +36,28 @@ object WsCommand {
 
   def fromJsonMoveWindow(json: JsValue): Option[MoveWindow] = {
     (
-      (json \ "latitude").toOption,
-      (json \ "longitude").toOption,
-      (json \ "width").toOption,
-      (json \ "height").toOption
+      (json \ "p1").toOption,
+      (json \ "p2").toOption
     ) match {
-      case (Some(JsNumber(latitude)), Some(JsNumber(longitude)), Some(JsNumber(width)), Some(JsNumber(height))) =>
-        Some(MoveWindow(Window(latitude.doubleValue(), longitude.doubleValue(), width.doubleValue(), height.doubleValue())))
+      case (Some(p1), Some(p2)) =>
+        (fromJsonExtractPoint(p1), fromJsonExtractPoint(p2)) match {
+          case (Some(p1), Some(p2)) => Some(MoveWindow(Window(p1, p2)))
+          case _ => None
+        }
+      case _ => None
+    }
+  }
+
+  def fromJsonExtractPoint(json: JsValue): Option[Position] = {
+    (
+      (json \ "latitude").toOption,
+      (json \ "longitude").toOption
+    ) match {
+      case (Some(p1), Some(p2)) =>
+        (p1, p2) match {
+          case (JsNumber(p1), JsNumber(p2)) => Some(Position(p1.doubleValue(), p2.doubleValue()))
+          case _ => None
+        }
       case _ => None
     }
   }
