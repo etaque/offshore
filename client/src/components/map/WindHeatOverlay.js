@@ -9,10 +9,14 @@ import { store } from '../../stores';
 
 class WindHeatOverlay extends React.Component {
 
+  shouldComponentUpdate(nextProps, nextState) {
+    return this.props.windUpdate != nextProps.windUpdate;
+  }
+
   render() {
     return h(HeatmapOverlay, R.merge({
       locations: this.props.windCells,
-      lngLatAccessor: (cell) => cell.position,
+      lngLatAccessor: (cell) => [cell.longitude, cell.latitude],
       intensityAccessor: (cell) => cell.force
     }, this.props.viewport));
   }

@@ -83,6 +83,7 @@ export const store = GlobalStore({
       startDragLngLat: null,
       isDragging: false
     },
+    windUpdate: 0,
     windCells: [],
     windTrails: [],
     boat:[46.483619, -1.785940, 90], // lat, long, direction
@@ -124,13 +125,13 @@ export const store = GlobalStore({
     },
     [actions.updatePlayer]: (state, player) => {
       ws.send(JSON.stringify({
-        command: "updatePlayer",
         value: player
       }));
       return R.merge(state, player);
     },
     [actions.updateWindCells]: (state, windCells) => {
       return R.merge(state, {
+        windUpdate: Date.now(),
         windCells: windCells,
         geoStore: makeGeoStore(windCells)
       });
