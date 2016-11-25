@@ -57,7 +57,10 @@ export const store = GlobalStore({
 
     [actions.sendUpdateBoatDirection]: (state, direction) => {
       //call socket io
-      ws.send({lat: state.boat[0], long: state.boat[1], direction: direction });
+      ws.send({
+        "command": "rotate",
+        "value": direction
+      });
 
       return state;
     },
@@ -66,6 +69,10 @@ export const store = GlobalStore({
     },
 
     [actions.updatePlayer]: (state, player) => {
+      ws.send({
+        command: "updatePlayer",
+        value: player
+      });
       return R.merge(state, player);
     },
 
@@ -118,11 +125,14 @@ ws.onmessage = function(event) {
 
   switch(data.command) {
   case 'refreshWind':
+    console.log("received wind data");
     actions.updateWindCells(data.values);
     break;
   case 'refreshBoat':
+    console.log("refresh boat data");
+    var playerData = data.value.filter(player => player.name === store.state.player.name);
     actions.receiveUpdateBoatDirection({
-      boat:[data.value.latitude,data.value.longitude,data.value.angle]
+      boat:[playerData.latitude, playerData.longitude, playerData.angle]
     });
     break;
   default:
