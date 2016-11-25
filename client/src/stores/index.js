@@ -26,6 +26,17 @@ function wsurl(s) {
   return ((l.protocol === "https:") ? "wss://" : "ws://") + l.host + l.pathname + s;
 }
 var ws = new WebSocket(wsurl('ws/socket'));
+ws.onopen = function() {
+  ws.send(JSON.stringify({
+    command: "moveWindow",
+    value: {
+      latitude: store.state.viewport.latitude,
+      longitude: store.state.viewport.longitude,
+      height: store.state.viewport.height,
+      width: store.state.viewport.width
+    }
+  }));
+};
 
 function initialTrails(props) {
   const mercator = ViewportMercator(props);
@@ -76,15 +87,17 @@ export const store = GlobalStore({
   handlers: {
     [actions.setViewport]: (state, viewport) => {
       const mergedViewport = R.merge(state.viewport, viewport);
-      ws.send(JSON.stringify({
-        command: "moveWindow",
-        value: {
-          latitude: mergedViewport.latitude,
-          longitude: mergedViewport.longitude,
-          height:mergedViewport.height,
-          width: mergedViewport.width
-        }
-      }));
+      if (ws.readyState === 1) {
+        ws.send(JSON.stringify({
+          command: "moveWindow",
+          value: {
+            latitude: mergedViewport.latitude,
+            longitude: mergedViewport.longitude,
+            height:mergedViewport.height,
+            width: mergedViewport.width
+          }
+        }));
+      }
       return R.mergeAll([state, {viewport: mergedViewport}, {windTrails: initialTrails(mergedViewport)}]);
     },
     [actions.sendUpdateBoatDirection]: (state, boatInfo) => {
