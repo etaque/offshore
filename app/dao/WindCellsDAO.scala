@@ -1,16 +1,11 @@
 package dao
 
-import java.sql.Connection
-import java.sql.DriverManager
-import org.postgresql.copy.PGCopyOutputStream
-import org.postgresql.core.BaseConnection
 import anorm.SqlParser._
 import anorm._
-import anorm.~
-import play.api.db.DB
-import play.api._
-import play.api.Play.current
 import models._
+import org.postgresql.copy.PGCopyOutputStream
+import play.api.Play.current
+import play.api.db.DB
 
 
 object WindCellsDAO {
@@ -31,22 +26,20 @@ object WindCellsDAO {
     }
   }
 
-  def copy(cells: Seq[WindCell]): Unit = {
-    val dbUrl = Play.current.configuration.getString("db.default.url").getOrElse(sys.error("db conf not found"))
-    val conn = DriverManager.getConnection(dbUrl)
-
-    try {
-      val baseConn = conn.asInstanceOf[BaseConnection]
-      val copyStream = new PGCopyOutputStream(baseConn, s"COPY $table FROM STDIN")
+  def copyCells(cells: Seq[WindCell]): Unit = {
+    DBService.withBaseConnection { implicit baseConnection =>
+      val copyStream = new PGCopyOutputStream(baseConnection, s"COPY $table FROM STDIN")
       cells.foreach { cell =>
-        val cols = Seq(cell.snapshotId.toString, s"(${cell.position.lon},${cell.position.lat})", cell.u.toString, cell.v.toString)
-        val line = s"${cols.mkString("\t")}\n"
-        copyStream.writeToCopy(line.getBytes, 0, line.getBytes.length)
+        val lineAsBytes = cell.toPGCopyLine().getBytes
+        copyStream.writeToCopy(lineAsBytes, 0, lineAsBytes.length)
       }
       copyStream.endCopy()
-    } finally {
-      conn.close()
     }
+  }
 
+  def refreshWindInfo(): Unit = {
+    DB.withConnection { implicit c =>
+      SQL"REFRESH MATERIALIZED VIEW wind_info".execute()
+    }
   }
 }
