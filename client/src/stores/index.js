@@ -1,5 +1,7 @@
 import R from 'ramda';
 import { GlobalStore, Action } from 'fluxx';
+import ViewportMercator from 'viewport-mercator-project';
+
 
 const GeoStore = require('terraformer-geostore').GeoStore;
 const GeoStoreMemory = require('terraformer-geostore-memory').Memory;
@@ -7,13 +9,48 @@ const RTree = require('terraformer-rtree').RTree;
 
 export const actions = {
   setViewport: Action('setViewport'),
+
   updateDimensions: Action('updateDimensions'),
-  updateBoatDirection: Action('updateBoatDirection'),
-
+  sendUpdateBoatDirection: Action('sendUpdateBoatDirection'),
+  receiveUpdateBoatDirection: Action('receiveUpdateBoatDirection'),
+  updateWindCells: Action('updateWindCells'),
+  closeWs: Action('closeWs'),
   updatePlayer: Action('updatePlayer'),
-
-  updateWindCells: Action('updateWindCells')
+  updateBoatDirection: Action('updateBoatDirection'),
+  resetWindTrails: Action('resetWindTrails'),
+  stepTrails: Action('stepTrails')
 };
+
+function wsurl(s) {
+  var l = window.location;
+  return ((l.protocol === "https:") ? "wss://" : "ws://") + l.host + l.pathname + s;
+}
+var ws = new WebSocket(wsurl('ws/socket'));
+
+function initialTrails(props) {
+  console.log('reset trails');
+  const mercator = ViewportMercator(props);
+
+  let windTrails = [];
+  const stepX = 30; // pixels
+  const stepY = 30; // pixels
+  let x = 0, y = 0;
+
+  while (x < props.width) {
+    y = 0;
+    while (y < props.height) {
+      let lnglat = mercator.unproject([x, y]); // array of [lng, lat]
+      windTrails.push({
+        origin: lnglat,
+        tail: [lnglat]
+      });
+      y = y + stepY;
+    }
+    x = x + stepX;
+  }
+
+  return windTrails;
+}
 
 export const store = GlobalStore({
 
@@ -32,8 +69,8 @@ export const store = GlobalStore({
       [35, -86, -4.699999809265137,4.400000095367432], // lat, lng, u, v
       [33, -84, -2.799999952316284, -4.099999904632568] // lat, lng, u, v
     ],
+    windTrails: [],
     boat:[47.106535, -2.112102, 0], // lat, long, direction
-
     player: {
       name: "Anonymous",
       color: "red"
@@ -42,25 +79,52 @@ export const store = GlobalStore({
 
   handlers: {
     [actions.setViewport]: (state, viewport) => {
-      return R.merge(state, viewport);
+      const withViewport = R.merge(state, viewport);
+      return R.merge(withViewport, {windTrails: initialTrails(withViewport)});
     },
     [actions.updateDimensions]: (state, dimensions) => {
-      return R.merge(state, dimensions);
-    },
-    [actions.updateBoatDirection]: (state, direction) => {
-      return R.merge(state, direction);
+      const withDim = R.merge(state, dimensions);
+      return R.merge(withDim, {windTrails: initialTrails(withDim)});
     },
 
+    [actions.sendUpdateBoatDirection]: (state, direction) => {
+      //call socket io
+      ws.send({lat: state.boat[0], long: state.boat[1], direction: direction });
+
+      return state;
+    },
+    [actions.receiveUpdateBoatDirection]: (state, newBoatInfo)=> {
+      return R.merge(state, newBoatInfo);
+    },
     [actions.updatePlayer]: (state, player) => {
       return R.merge(state, player);
     },
-
     [actions.updateWindCells]: (state, windCells) => {
       return R.merge(state, { geoStore: makeGeoStore(windCells) });
+    },
+    [actions.closeWs]: () => {
+      ws.close();
+    },
+    [actions.resetWindTrails]: (state) => {
+      return R.merge(state, { windTrails: initialTrails(state) });
+    },
+    [actions.stepTrails]: (state) => {
+      const step = 0.5 / (state.zoom * state.zoom);
+      const windTrails = R.map((trail) => {
+        if (trail.tail.length > 20 + (20 * Math.random())) {
+          trail.tail = [trail.origin];
+        } else {
+          let last = trail.tail[0];
+          let newPoint = [last[0] + step, last[1] + step];
+          trail.tail.unshift(newPoint);
+        }
+        return trail;
+      }, state.windTrails);
+      return R.merge(state, { windTrails: windTrails });
     }
   }
-});
 
+});
 
 function makeGeoStore(windCells) {
   const geoStore = new GeoStore({
@@ -74,7 +138,6 @@ function makeGeoStore(windCells) {
 
   return geoStore;
 }
-
 
 function cellToGeoJSON(cell) {
   const polygon = [
@@ -96,6 +159,25 @@ function cellToGeoJSON(cell) {
     }
   };
 }
+
+
+ws.onmessage = function(event) {
+  var data = JSON.parse(event.data);
+
+  switch(data.command) {
+  case 'refreshWind':
+    actions.updateWindCells(data.values);
+    break;
+  case 'refreshBoat':
+    actions.receiveUpdateBoatDirection({
+      boat:[data.value.latitude,data.value.longitude,data.value.angle]
+    });
+    break;
+  default:
+    console.log("unknown command");
+  }
+
+};
 
 export function getWindOnPoint(lat, lon) {
   const result = store.state.geoStore.contains({

@@ -38,16 +38,12 @@ class Map extends React.Component {
     window.addEventListener("resize", this.updateDimensions);
     document.addEventListener("keydown", this.updateBoatDirection, false);
     animate();
-    this.ws = new WebSocket(wsurl('/meteo'));
-    this.ws.onmessage = function(event) {
-      // TODO: Update the wind state from the info the server sent us
-    };
   }
 
   componentWillUnmount = () => {
     window.removeEventListener("resize", this.updateDimensions);
     document.removeEventListener("keydown", this.updateBoatDirection, false);
-    this.ws.close();
+    actions.closeWs();
   }
 
   _onChangeViewport = (opt) => {
@@ -61,8 +57,6 @@ class Map extends React.Component {
       startDragLngLat: opt.startDragLngLat,
       isDragging: opt.isDragging
     });
-    // TODO: Send info to the server
-    // this.ws.send(JSON.stringify({}));
   }
 
   updateBoatDirection = (event) => {
@@ -70,7 +64,7 @@ class Map extends React.Component {
     const arbitraryPad =  5;
     const newBoat = event.keyCode == 37 ? [boat[0], boat[1], boat[2] + arbitraryPad] : ( event.keyCode == 39 ? [boat[0], boat[1], boat[2] - arbitraryPad] : [boat[0], boat[1], boat[2]]);
 
-    actions.updateBoatDirection({
+    actions.sendUpdateBoatDirection({
       boat: newBoat
     });
   }
