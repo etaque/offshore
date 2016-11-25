@@ -24,7 +24,7 @@ function wsurl(s) {
 class Map extends React.Component {
 
   updateDimensions = debounce(() => {
-    actions.updateDimensions({
+    actions.setViewport({
       width: window.innerWidth,
       height: window.innerHeight
     });
@@ -80,4 +80,4 @@ class Map extends React.Component {
 
 }
 
-export default connect(Map, store, state => state);
+export default connect(Map, store, state => state.viewport);

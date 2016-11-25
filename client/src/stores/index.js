@@ -28,7 +28,6 @@ function wsurl(s) {
 var ws = new WebSocket(wsurl('ws/socket'));
 
 function initialTrails(props) {
-  console.log('reset trails');
   const mercator = ViewportMercator(props);
 
   let windTrails = [];
@@ -56,14 +55,15 @@ export const store = GlobalStore({
 
   state: {
     geoStore: makeGeoStore([]),
-    width: window.innerWidth,
-    height: window.innerHeight,
-    latitude: 38,
-    longitude: -46,
-    zoom: 3,
-    startDragLngLat: null,
-    isDragging: false,
-
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      latitude: 38,
+      longitude: -46,
+      zoom: 3,
+      startDragLngLat: null,
+      isDragging: false
+    },
     wind: [
       [38, -46, 3.4000000953674316, 10.600000381469727], // lat, lng, u, v
       [35, -86, -4.699999809265137,4.400000095367432], // lat, lng, u, v
@@ -79,14 +79,9 @@ export const store = GlobalStore({
 
   handlers: {
     [actions.setViewport]: (state, viewport) => {
-      const withViewport = R.merge(state, viewport);
-      return R.merge(withViewport, {windTrails: initialTrails(withViewport)});
+      const mergedViewport = R.merge(state.viewport, viewport);
+      return R.mergeAll([state, {viewport: mergedViewport}, {windTrails: initialTrails(mergedViewport)}]);
     },
-    [actions.updateDimensions]: (state, dimensions) => {
-      const withDim = R.merge(state, dimensions);
-      return R.merge(withDim, {windTrails: initialTrails(withDim)});
-    },
-
     [actions.sendUpdateBoatDirection]: (state, direction) => {
       //call socket io
       ws.send({lat: state.boat[0], long: state.boat[1], direction: direction });
@@ -106,10 +101,10 @@ export const store = GlobalStore({
       ws.close();
     },
     [actions.resetWindTrails]: (state) => {
-      return R.merge(state, { windTrails: initialTrails(state) });
+      return R.merge(state, { windTrails: initialTrails(state.viewport) });
     },
     [actions.stepTrails]: (state) => {
-      const step = 0.5 / (state.zoom * state.zoom);
+      const step = 0.5 / (state.viewport.zoom * state.viewport.zoom);
       const windTrails = R.map((trail) => {
         if (trail.tail.length > 20 + (20 * Math.random())) {
           trail.tail = [trail.origin];
