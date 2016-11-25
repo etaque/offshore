@@ -3,7 +3,6 @@ package dao
 import anorm.SqlParser._
 import anorm._
 import models._
-import org.joda.time.DateTime
 import org.postgresql.copy.PGCopyOutputStream
 import play.api.Play.current
 import play.api.db.DB
@@ -24,14 +23,6 @@ object WindCellsDAO {
   def inBox(snapshotId: Long, box: Box): Seq[WindCell]= {
     DB.withConnection { implicit c =>
       SQL"SELECT * FROM #$table WHERE snapshot_id=$snapshotId AND $box @> position".as(single.*)
-    }
-  }
-
-  def createSnapshot(timestamp: DateTime, gribFilename: String): Option[Snapshot] = {
-    DB.withConnection { implicit c =>
-      SQL"INSERT INTO snapshots(id, timestamp, grib_filename) VALUES(nextval('snapshot_id_serial'), $timestamp, $gribFilename)"
-        .executeInsert(scalar[Long].singleOpt)
-        .map(id => Snapshot(id, timestamp, gribFilename))
     }
   }
 
