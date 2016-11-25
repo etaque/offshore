@@ -10,7 +10,6 @@ export default class Layout extends React.Component {
   render() {
     return <main>
       <Map />
-      <Board />
     </main>;
   }
 
