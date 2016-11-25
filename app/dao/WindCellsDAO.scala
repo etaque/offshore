@@ -58,7 +58,10 @@ object WindCellsDAO {
   }
 
   def findByTimestampAndBox(timestamp: DateTime, box: Box): Seq[WindInfo] = DB.withConnection { implicit c =>
-    SQL"SELECT * FROM wind_info WHERE timestamp = (SELECT MAX(timestamp) FROM wind_info WHERE timestamp <= $timestamp) AND $box @> position"
-      .as(singleWindInfo.*)
+    SQL"SELECT id FROM snapshots WHERE timestamp = (SELECT MAX(timestamp) FROM snapshots WHERE timestamp <= $timestamp AND endDate IS NOT NULL)".as(scalar[DateTime].singleOpt) match {
+      case Some(knownTimestamp) => SQL"SELECT * FROM wind_info WHERE timestamp = $knownTimestamp AND $box @> position".as(singleWindInfo.*)
+      case None => Seq()
+    }
+
   }
 }
