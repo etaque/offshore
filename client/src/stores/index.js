@@ -1,6 +1,7 @@
 import R from 'ramda';
 import { GlobalStore, Action } from 'fluxx';
 
+
 const GeoStore = require('terraformer-geostore').GeoStore;
 const GeoStoreMemory = require('terraformer-geostore-memory').Memory;
 const RTree = require('terraformer-rtree').RTree;
@@ -8,9 +9,17 @@ const RTree = require('terraformer-rtree').RTree;
 export const actions = {
   setViewport: Action('setViewport'),
   updateDimensions: Action('updateDimensions'),
-  updateBoatDirection: Action('updateBoatDirection'),
-  updateWindCells: Action('updateWindCells')
+  sendUpdateBoatDirection: Action('sendUpdateBoatDirection'),
+  receiveUpdateBoatDirection: Action('receiveUpdateBoatDirection'),
+  updateWindCells: Action('updateWindCells'),
+  closeWs: Action('closeWs')
 };
+
+function wsurl(s) {
+  var l = window.location;
+  return ((l.protocol === "https:") ? "wss://" : "ws://") + l.host + l.pathname + s;
+}
+var ws = new WebSocket(wsurl('ws/socket'));
 
 export const store = GlobalStore({
 
@@ -38,15 +47,24 @@ export const store = GlobalStore({
     [actions.updateDimensions]: (state, dimensions) => {
       return R.merge(state, dimensions);
     },
-    [actions.updateBoatDirection]: (state, direction) => {
-      return R.merge(state, direction);
+
+    [actions.sendUpdateBoatDirection]: (state, direction) => {
+      //call socket io
+      ws.send({lat: state.boat[0], long: state.boat[1], direction: direction });
+
+      return state;
+    },
+    [actions.receiveUpdateBoatDirection]: (state, newBoatInfo)=> {
+      return R.merge(state, newBoatInfo);
     },
     [actions.updateWindCells]: (state, windCells) => {
       return R.merge(state, { geoStore: makeGeoStore(windCells) });
+    },
+    [actions.closeWs]: () => {
+      ws.close();
     }
   }
 });
-
 
 function makeGeoStore(windCells) {
   const geoStore = new GeoStore({
@@ -60,6 +78,7 @@ function makeGeoStore(windCells) {
 
   return geoStore;
 }
+
 function cellToGeoJSON(cell) {
   return {
     "type": "Feature",
@@ -73,3 +92,21 @@ function cellToGeoJSON(cell) {
     }
   };
 }
+
+ws.onmessage = function(event) {
+  var data = JSON.parse(event.data);
+
+  switch(data.command) {
+  case 'refreshWind':
+    actions.updateWindCells(data.values);
+    break;
+  case 'refreshBoat':
+    actions.receiveUpdateBoatDirection({
+      boat:[data.value.latitude,data.value.longitude,data.value.angle]
+    });
+    break;
+  default:
+    console.log("unknown command");
+  }
+
+};
