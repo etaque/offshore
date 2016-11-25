@@ -11,7 +11,14 @@ var stylus = require('gulp-stylus');
 
 
 function compile(watch) {
-  var bundler = watchify(browserify('./src/index.js', { debug: watch }).transform(babel));
+  var bundler;
+  if (watch) {
+    var opts = watchify.args;
+    opts.debug = true;
+    bundler = watchify(browserify('./src/index.js', opts).transform(babel));
+  } else {
+    bundler = browserify('./src/index.js', { debug: true }).transform(babel);
+  }
 
   function rebundleJS() {
     bundler.bundle()
