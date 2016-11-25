@@ -39,6 +39,7 @@
     "immutable": "^3.8.1",
     "lodash.debounce": "^4.0.8",
     "luma.gl": "^2.10.0",
+    "r-dom": "^2.3.1",
     "ramda": "^0.22.1",
     "react": "^15.4.0",
     "react-dom": "^15.4.0",

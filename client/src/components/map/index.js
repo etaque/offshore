@@ -48,9 +48,6 @@ class Map extends React.Component {
   }
 
   _onChangeViewport = (opt) => {
-    if (this.props && this.props.onChangeViewport) {
-      return this.props.onChangeViewport(opt);
-    }
     actions.setViewport({
       latitude: opt.latitude,
       longitude: opt.longitude,
@@ -74,11 +71,11 @@ class Map extends React.Component {
     return h(MapGL, R.merge({
       mapboxApiAccessToken: 'pk.eyJ1IjoiZWxvaXNhbnQiLCJhIjoiY2l2dGt6MDJoMDAyYzJ6bDRmMXdtNWE2ciJ9.ph6CziqSFFnHUzc35qvuzw',
       onChangeViewport: this._onChangeViewport
-    }, this.props), [
+    }, this.props.viewport), [
       h(WindHeatOverlay), h(WindOverlay), h(BoatOverlay)
     ]);
   }
 
 }
 
-export default connect(Map, store, state => state.viewport);
+export default connect(Map, store, state => state);
