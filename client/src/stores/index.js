@@ -1,15 +1,21 @@
 import R from 'ramda';
 import { GlobalStore, Action } from 'fluxx';
 
+const GeoStore = require('terraformer-geostore').GeoStore;
+const GeoStoreMemory = require('terraformer-geostore-memory').Memory;
+const RTree = require('terraformer-rtree').RTree;
+
 export const actions = {
   setViewport: Action('setViewport'),
   updateDimensions: Action('updateDimensions'),
-  updateBoatDirection: Action('updateBoatDirection')
+  updateBoatDirection: Action('updateBoatDirection'),
+  updateWindCells: Action('updateWindCells')
 };
 
 export const store = GlobalStore({
 
   state: {
+    geoStore: makeGeoStore([]),
     width: window.innerWidth,
     height: window.innerHeight,
     latitude: 38,
@@ -34,6 +40,36 @@ export const store = GlobalStore({
     },
     [actions.updateBoatDirection]: (state, direction) => {
       return R.merge(state, direction);
+    },
+    [actions.updateWindCells]: (state, windCells) => {
+      return R.merge(state, { geoStore: makeGeoStore(windCells) });
     }
   }
 });
+
+
+function makeGeoStore(windCells) {
+  const geoStore = new GeoStore({
+    store: new GeoStoreMemory(),
+    index: new RTree()
+  });
+
+  windCells.forEach(cell => {
+    geoStore.add(cellToGeoJSON(cell));
+  });
+
+  return geoStore;
+}
+function cellToGeoJSON(cell) {
+  return {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [ cell.latitude, cell.longitude ]
+    },
+    "properties": {
+      "origin": cell.direction,
+      "speed": cell.force
+    }
+  };
+}
