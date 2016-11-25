@@ -12,7 +12,7 @@ class WindOverlay extends React.Component {
   constructor(props) {
     super(props);
     this.tween = new TWEEN.Tween({time: 0})
-      .to({time: 100}, 10000)
+      .to({time: 15}, 1000) // 15 fps
       .onUpdate(function() {
         actions.stepTrails();
       })
