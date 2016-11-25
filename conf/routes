@@ -1,6 +1,5 @@
 GET         /                                                  controllers.Application.index
 GET         /load                                              controllers.Application.load(start: String ?= "", end: String ?= "")
-GET         /world                                             controllers.Application.world
 GET         /postgis                                           controllers.Application.postgis
 
 GET         /ws/socket                                         controllers.Websocket.socket

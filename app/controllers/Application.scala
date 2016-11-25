@@ -43,10 +43,6 @@ object Application extends Controller {
     Future.successful(Ok("Done."))
   }
 
-  def world = Action.async { implicit request =>
-    Future.successful(Ok(views.html.Application.world()))
-  }
-
   def postgis = Action.async {
     LandPolygonsExtractor.extract
     Future.successful(Ok)
