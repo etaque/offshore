@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorLogging, Props}
 import dao.{SnapshotsDAO, WindCellsDAO}
 import models.Snapshot
 import org.joda.time.DateTime
+import play.api.Logger
 import services.{GribExtractor, GribLoader}
 
 import scala.collection.immutable.Queue
@@ -76,7 +77,10 @@ class GribLoaderManagerActor extends Actor with ActorLogging {
           .map(cells => WindCellsDAO.copyCells(cells))
           .map(_ => validateProcess(createdSnapshot.id))
           .onFailure[Unit] {
-          case _: Exception => cancelProcess(createdSnapshot.id)
+          case e: Exception => {
+            Logger.error("Error getting data from " + url, e)
+            cancelProcess(createdSnapshot.id)
+          }
         }
     }
   }

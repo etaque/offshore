@@ -42,7 +42,8 @@ object GribLoader {
     if (currentDate.isBefore(startDate)) currentDate = currentDate.withDurationAdded(Duration.standardHours(4), 1)
     while (!currentDate.isAfter(endDate) && overflowProtection >= 0) {
       dates = dates :+ currentDate
-      overflowProtection -= 1
+      currentDate = currentDate.withDurationAdded(Duration.standardHours(4), 1)
+      overflowProtection = overflowProtection - 1
     }
     dates.foreach(load)
   }
