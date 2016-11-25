@@ -60,16 +60,37 @@ function makeGeoStore(windCells) {
 
   return geoStore;
 }
+
+
 function cellToGeoJSON(cell) {
+  const polygon = [
+    [ cell.latitude - 0.5, cell.longitude - 0.5 ],
+    [ cell.latitude - 0.5, cell.longitude + 0.5 ],
+    [ cell.latitude + 0.5, cell.longitude + 0.5 ],
+    [ cell.latitude + 0.5, cell.longitude - 0.5 ]
+  ];
+
   return {
     "type": "Feature",
     "geometry": {
-      "type": "Point",
-      "coordinates": [ cell.latitude, cell.longitude ]
+      "type": "Polygon",
+      "coordinates": polygon
     },
     "properties": {
       "origin": cell.direction,
       "speed": cell.force
     }
   };
+}
+
+export function getWindOnPoint(lat, lon) {
+  const result = store.state.geoStore.contains({
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [lat, lon]
+    }
+  });
+
+  return result[0] ? result[0].properties : null;
 }
