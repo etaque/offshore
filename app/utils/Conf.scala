@@ -15,6 +15,16 @@ object Conf {
   val gfsFileName = getString("ws.gfs.fileName")
   val gfsPeriod = getInt("ws.gfs.period")
 
+  val lpBaseUrl = getString("ws.lp.baseUrl")
+  val lpFileName = getString("ws.lp.fileName")
+
+  val lpSRID = getString("lp.srid")
+  val lpSchema = getString("lp.schema")
+  val lpDBtable = getString("lp.dbtable")
+  val lpHost = getString("lp.host")
+  val lpDatabase = getString("lp.database")
+  val lpUser = getString("lp.user")
+
   private def getValue[A](getter: String => Option[A], key: String): A = getter(key).getOrElse(sys.error(s"Missing config key: $key"))
 
   private def getString(key: String) = getValue(conf.getString(_), key)

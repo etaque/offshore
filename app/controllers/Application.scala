@@ -5,6 +5,12 @@ import models._
 import play.api.mvc._
 import services.GribLoader
 import utils.DateUtils
+import org.joda.time.DateTime
+import play.api.libs.ws.WS
+import utils.Conf
+import play.api.libs.iteratee._
+import play.api.libs.ws.ning._
+import services.LandPolygonsExtractor
 
 import scala.concurrent.Future
 
@@ -36,5 +42,11 @@ object Application extends Controller {
   def world = Action.async { implicit request =>
     Future.successful(Ok(views.html.Application.world()))
   }
+
+  def postgis = Action.async {
+    LandPolygonsExtractor.extract
+    Future.successful(Ok)
+  }
+
 }
 
