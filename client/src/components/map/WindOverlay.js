@@ -5,27 +5,31 @@ import TWEEN from 'tween.js';
 import h from 'react-hyperscript';
 import connect from 'fluxx/lib/ReactConnector';
 
-import { store } from '../../stores';
-
-function round(x, n) {
-  const tenN = Math.pow(10, n);
-  return Math.round(x * tenN) / tenN;
-}
+import { store, actions } from '../../stores';
 
 class WindOverlay extends React.Component {
 
   constructor(props) {
-    console.log('construct WindOverlay');
     super(props);
+    this.tween = new TWEEN.Tween({time: 0})
+      .to({time: 100}, 10000)
+      .onUpdate(function() {
+        actions.stepTrails();
+      })
+      .repeat(Infinity);
   }
 
   componentDidMount() {
+    this.tween.start();
     this._redraw();
   }
 
   componentDidUpdate() {
-    // TODO: Update the state on component update
     this._redraw();
+  }
+
+  componentWillUnmount() {
+    this.tween.stop();
   }
 
   _redraw() {
@@ -42,18 +46,31 @@ class WindOverlay extends React.Component {
     ctx.clearRect(0, 0, width, height);
     ctx.globalCompositeOperation = 'source-over';
 
-    if (this.props.windTrails) {
+    if (!this.props.isDragging && this.props.windTrails) {
       for (const point of this.props.windTrails) {
-        let pixel = mercator.project(point.origin);
-        if (pixel[0] + dotRadius >= 0 &&
+        let opacity;
+        if (point.tail.length > 10) {
+          opacity = 1;
+        } else if (point.tail.length > 5) {
+          opacity = 0.7;
+        } else {
+          opacity = 0.4;
+        }
+        for (const trail of point.tail) {
+          let pixel = mercator.project(trail);
+          if (pixel[0] + dotRadius >= 0 &&
             pixel[0] - dotRadius < width &&
             pixel[1] + dotRadius >= 0 &&
             pixel[1] - dotRadius < height
-        ) {
-          ctx.fillStyle = '#F00';
-          ctx.beginPath();
-          ctx.arc(pixel[0], pixel[1], dotRadius, 0, Math.PI * 2);
-          ctx.fill();
+          ) {
+            ctx.fillStyle = `rgba(255, 0, 0, ${opacity})`;
+            ctx.beginPath();
+            ctx.arc(pixel[0], pixel[1], dotRadius, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          if (opacity > 0.1) {
+            opacity = opacity - 0.1;
+          }
         }
       }
     }

@@ -9,6 +9,7 @@ const RTree = require('terraformer-rtree').RTree;
 
 export const actions = {
   setViewport: Action('setViewport'),
+
   updateDimensions: Action('updateDimensions'),
   sendUpdateBoatDirection: Action('sendUpdateBoatDirection'),
   receiveUpdateBoatDirection: Action('receiveUpdateBoatDirection'),
@@ -16,7 +17,8 @@ export const actions = {
   closeWs: Action('closeWs'),
   updatePlayer: Action('updatePlayer'),
   updateBoatDirection: Action('updateBoatDirection'),
-  resetWindTrails: Action('resetWindTrails')
+  resetWindTrails: Action('resetWindTrails'),
+  stepTrails: Action('stepTrails')
 };
 
 function wsurl(s) {
@@ -30,15 +32,17 @@ function initialTrails(props) {
   const mercator = ViewportMercator(props);
 
   let windTrails = [];
-  const stepX = 50; // pixels
-  const stepY = 50; // pixels
+  const stepX = 30; // pixels
+  const stepY = 30; // pixels
   let x = 0, y = 0;
 
   while (x < props.width) {
     y = 0;
     while (y < props.height) {
+      let lnglat = mercator.unproject([x, y]); // array of [lng, lat]
       windTrails.push({
-        origin: mercator.unproject([x, y]) // array of [lng, lat]
+        origin: lnglat,
+        tail: [lnglat]
       });
       y = y + stepY;
     }
@@ -103,6 +107,19 @@ export const store = GlobalStore({
     },
     [actions.resetWindTrails]: (state) => {
       return R.merge(state, { windTrails: initialTrails(state) });
+    },
+    [actions.stepTrails]: (state) => {
+      const windTrails = R.map((trail) => {
+        if (trail.tail.length > 20 + (20 * Math.random())) {
+          trail.tail = [trail.origin];
+        } else {
+          let last = trail.tail[0];
+          let newPoint = [last[0] + 0.1, last[1] + 0.1];
+          trail.tail.unshift(newPoint);
+        }
+        return trail;
+      }, state.windTrails);
+      return R.merge(state, { windTrails: windTrails });
     }
   }
 
