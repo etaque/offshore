@@ -9,14 +9,16 @@ case class MoveWindow(windows: Window) extends WsCommand
 
 case class Rotate(angle: Long) extends WsCommand
 
+case class UpdatePlayer(name: String, color: String) extends WsCommand
+
 // Server to client
 case class RefreshWind(cells: Seq[Cell]) extends WsCommand
 
-case class Cell(latitude: Double, longitude: Double, force: Double, direction: Double)
+case class Cell(latitude: Double, longitude: Double, speed: Double, origin: Double)
 
 case class RefreshBoat(boats: Seq[Boat]) extends WsCommand
 
-case class Boat(id: Long, latitude: Double, longitude: Double, angle: Long)
+case class Boat(name: String, color: String, latitude: Double, longitude: Double, angle: Long)
 
 object WsCommand {
   def fromJson(json: JsValue): Option[WsCommand] = {
@@ -25,6 +27,7 @@ object WsCommand {
         command match {
           case JsString("moveWindow") => fromJsonMoveWindow(value)
           case JsString("rotate") => fromJsonRotate(value)
+          case JsString("updatePlayer") => fromJsonUpdatePlayer(value)
           case _ => None // ignore server commands
         }
       case _ => None
@@ -52,6 +55,17 @@ object WsCommand {
     }
   }
 
+  def fromJsonUpdatePlayer(json: JsValue): Option[UpdatePlayer] = {
+    (
+      (json \ "angle").toOption ,
+      (json \ "color").toOption
+    ) match {
+      case (Some(JsString(name)), Some(JsString(color))) =>
+        Some(UpdatePlayer(name, color))
+      case _ => None
+    }
+  }
+
   def toJson(command: WsCommand): Option[JsValue] = {
     command match {
       case command: RefreshWind => toJsonRefreshWind(command)
@@ -65,8 +79,8 @@ object WsCommand {
       JsObject(Map(
         "latitude" -> JsNumber(cell.latitude),
         "longitude" -> JsNumber(cell.longitude),
-        "force" -> JsNumber(cell.force),
-        "direction" -> JsNumber(cell.direction)
+        "speed" -> JsNumber(cell.speed),
+        "origin" -> JsNumber(cell.origin)
       ))
     }))
   }
@@ -74,7 +88,8 @@ object WsCommand {
   def toJsonRefreshBoat(command: RefreshBoat): Option[JsValue] = {
     Some(JsArray(command.boats.map { boat =>
       JsObject(Map(
-        "id" -> JsNumber(boat.id),
+        "name" -> JsString(boat.name),
+        "color" -> JsString(boat.color),
         "latitude" -> JsNumber(boat.latitude),
         "longitude" -> JsNumber(boat.longitude),
         "angle" -> JsNumber(boat.angle)
