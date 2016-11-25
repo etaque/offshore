@@ -110,13 +110,16 @@ export const store = GlobalStore({
       return R.merge(state, { windTrails: initialTrails(state.viewport) });
     },
     [actions.stepTrails]: (state) => {
-      const step = 0.5 / (state.viewport.zoom * state.viewport.zoom);
+      const step = 0.05 / (state.viewport.zoom * state.viewport.zoom);
       const windTrails = R.map((trail) => {
-        if (trail.tail.length > 20 + (20 * Math.random())) {
+        let last = trail.tail[0];
+        const wind = getWindOnPoint() || { origin: 200, speed: 25 };
+        let speed = wind.speed;
+        if (trail.tail.length > speed) {
           trail.tail = [trail.origin];
         } else {
-          let last = trail.tail[0];
-          let newPoint = [last[0] + step, last[1] + step];
+          let angle = wind.origin * (Math.PI / 180);
+          let newPoint = [last[0] + (step * speed * Math.sin(angle)), last[1] + (step * speed * Math.cos(angle))];
           trail.tail.unshift(newPoint);
         }
         return trail;
@@ -192,5 +195,5 @@ export function getWindOnPoint(lat, lon) {
     }
   });
 
-  return result[0] ? result[0].properties : null;
+  return result && result[0] && result[0].properties;
 }
