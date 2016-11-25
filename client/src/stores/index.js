@@ -131,39 +131,18 @@ export const store = GlobalStore({
 });
 
 function makeGeoStore(windCells) {
-  const geoStore = new GeoStore({
-    store: new GeoStoreMemory(),
-    index: new RTree()
-  });
-
-  windCells.forEach(cell => {
-    geoStore.add(cellToGeoJSON(cell));
+  let geoStore = {};
+  windCells.map(cell => {
+    geoStore[cell.latitude + "," + cell.longitude] = cell;
   });
 
   return geoStore;
 }
 
-function cellToGeoJSON(cell) {
-  const polygon = [
-    [ cell.latitude - 0.5, cell.longitude - 0.5 ],
-    [ cell.latitude - 0.5, cell.longitude + 0.5 ],
-    [ cell.latitude + 0.5, cell.longitude + 0.5 ],
-    [ cell.latitude + 0.5, cell.longitude - 0.5 ]
-  ];
-
-  return {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": polygon
-    },
-    "properties": {
-      "origin": cell.direction,
-      "speed": cell.force
-    }
-  };
+export function getWindOnPoint(lat, lon) {
+  const key = Math.round(lat) + "," + Math.round(lon);
+  return store.state.geoStore[key];
 }
-
 
 ws.onmessage = function(event) {
   var data = JSON.parse(event.data);
@@ -183,17 +162,5 @@ ws.onmessage = function(event) {
   default:
     console.log("unknown command");
   }
-
 };
 
-export function getWindOnPoint(lat, lon) {
-  const result = store.state.geoStore.contains({
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [lat, lon]
-    }
-  });
-
-  return result && result[0] && result[0].properties;
-}
