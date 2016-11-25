@@ -113,9 +113,9 @@ export const store = GlobalStore({
       const step = 0.05 / (state.viewport.zoom * state.viewport.zoom);
       const windTrails = R.map((trail) => {
         let last = trail.tail[0];
-        const wind = getWindOnPoint() || { origin: 200, speed: 25 };
+        const wind = getWindOnPoint() || { origin: 200, speed: 10 + 20 * Math.random() };
         let speed = wind.speed;
-        if (trail.tail.length > speed) {
+        if (trail.tail.length > 10 + speed) {
           trail.tail = [trail.origin];
         } else {
           let angle = wind.origin * (Math.PI / 180);
@@ -163,4 +163,3 @@ ws.onmessage = function(event) {
     console.log("unknown command");
   }
 };
-

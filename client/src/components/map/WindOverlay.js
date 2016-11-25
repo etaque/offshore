@@ -49,9 +49,9 @@ class WindOverlay extends React.Component {
     if (!this.props.viewport.isDragging && this.props.windTrails) {
       for (const point of this.props.windTrails) {
         let opacity;
-        if (point.tail.length > 10) {
+        if (point.tail.length > 15) {
           opacity = 1;
-        } else if (point.tail.length > 5) {
+        } else if (point.tail.length > 10) {
           opacity = 0.7;
         } else {
           opacity = 0.4;
