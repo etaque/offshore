@@ -95,6 +95,22 @@ class GameActor extends Actor with ActorLogging {
   }
 
   def onStateRunning: Receive = {
+    case Join(user) =>
+      val id = scala.util.Random.nextLong()
+      val boat = Boat(user, "black", startPosition.lat, startPosition.lon, 90)
+      val player = Player(id, user, "black", boat)
+
+      Logger.info(s"$user has joined the game !")
+      subscribers = subscribers :+ sender
+      sender ! player
+
+      // TODO: remove this line once game starting management is done
+      context.system.scheduler.scheduleOnce(10.seconds, self, Start)(context.system.dispatcher)
+
+    case Leave(user) =>
+      Logger.info(s"$user has left the game !")
+      subscribers = subscribers.filter(_ != sender)
+
     case Refresh =>
       val gameInfo = state.asInstanceOf[Running].gameInfo
       val oldTimestamp = gameInfo.timestamp

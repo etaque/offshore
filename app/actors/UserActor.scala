@@ -30,6 +30,7 @@ class UserActor(out: ActorRef, game: ActorRef, user: String) extends Actor with 
   var playerOpt: Option[Player] = None
   var windowOpt: Option[Window] = None
   var timestampOpt: Option[DateTime] = None
+  var previousTimestamp: Option[DateTime] = None
 
   override def preStart() = game ! GameActor.Join(user)
 
@@ -69,8 +70,11 @@ class UserActor(out: ActorRef, game: ActorRef, user: String) extends Actor with 
     case Refresh =>
       (windowOpt, timestampOpt) match {
         case (Some(window), Some(timestamp)) =>
-          val windInfoList: Seq[WindInfo] = WindCellsDAO.findByTimestampAndBox(timestamp, window.toBox)
-          out ! WsCommand.toJson(RefreshWind(windInfoList.map(_.toCell)))
+          //if (!previousTimestamp.exists(timestamp.equals)) {
+          //  previousTimestamp = Some(timestamp)
+            val windInfoList: Seq[WindInfo] = WindCellsDAO.findByTimestampAndBox(timestamp, window.toBox)
+            out ! WsCommand.toJson(RefreshWind(windInfoList.map(_.toCell)))
+          //}
         case _ => // ignore
       }
 
