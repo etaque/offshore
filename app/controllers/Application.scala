@@ -36,11 +36,4 @@ object Application extends Controller {
     println((System.nanoTime - startPerf) / 1e6)
     Future.successful(Ok("Done."))
   }
-
-  def world = Action.async { implicit request =>
-    Future.successful(Ok(views.html.Application.world()))
-  }
-}
-
-
 }
