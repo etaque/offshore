@@ -66,7 +66,7 @@ export const store = GlobalStore({
     },
     windCells: [],
     windTrails: [],
-    boat:[47.106535, -2.112102, 0], // lat, long, direction
+    boat:[46.483619, -1.785940, 0], // lat, long, direction
     player: {
       name: "Anonymous",
       color: "red"
@@ -76,14 +76,25 @@ export const store = GlobalStore({
   handlers: {
     [actions.setViewport]: (state, viewport) => {
       const mergedViewport = R.merge(state.viewport, viewport);
+      ws.send(JSON.stringify({
+        command: "moveWindow",
+        value: {
+          latitude: mergedViewport.latitude,
+          longitude: mergedViewport.longitude,
+          height:mergedViewport.height,
+          width: mergedViewport.width
+        }
+      }));
       return R.mergeAll([state, {viewport: mergedViewport}, {windTrails: initialTrails(mergedViewport)}]);
     },
-    [actions.sendUpdateBoatDirection]: (state, direction) => {
+    [actions.sendUpdateBoatDirection]: (state, boatInfo) => {
       //call socket io
-      ws.send({
-        "command": "rotate",
-        "value": direction
-      });
+      ws.send(JSON.stringify({
+        command: "rotate",
+        value: {
+          angle: boatInfo.boat[2]
+        }
+      }));
 
       return state;
     },
@@ -91,10 +102,10 @@ export const store = GlobalStore({
       return R.merge(state, newBoatInfo);
     },
     [actions.updatePlayer]: (state, player) => {
-      ws.send({
+      ws.send(JSON.stringify({
         command: "updatePlayer",
         value: player
-      });
+      }));
       return R.merge(state, player);
     },
     [actions.updateWindCells]: (state, windCells) => {
