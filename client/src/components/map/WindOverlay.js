@@ -1,5 +1,4 @@
 import React from 'react';
-import debounce from 'lodash.debounce';
 import ViewportMercator from 'viewport-mercator-project';
 import TWEEN from 'tween.js';
 
@@ -18,55 +17,13 @@ class WindOverlay extends React.Component {
   constructor(props) {
     console.log('construct WindOverlay');
     super(props);
-
-    this.state = this.initialState();
-
-    /* const self = this;
-    this.tween = new TWEEN.Tween({time: 0})
-    .to({time: 50}, 2000)
-    .onUpdate(function() {
-      self.setState(this);
-    })
-    .repeat(Infinity);*/
-  }
-
-  initialState() {
-    const mercator = ViewportMercator(this.props);
-
-    let points = [];
-    const stepX = 50; // pixels
-    const stepY = 50; // pixels
-    let x = 0, y = 0;
-
-    while (x < this.props.width) {
-      y = 0;
-      while (y < this.props.height) {
-        points.push({
-          origin: mercator.unproject([x, y]) // array of [lng, lat]
-        });
-        y = y + stepY;
-      }
-      x = x + stepX;
-    }
-
-    return {
-      points
-    };
-
   }
 
   componentDidMount() {
     this._redraw();
   }
 
-  resetPoints = {
-    return debounce(() => {
-      this.setState(this.initialState());
-    }, 300);
-  }
-
   componentDidUpdate() {
-    console.log('did update');
     // TODO: Update the state on component update
     this._redraw();
   }
@@ -85,8 +42,8 @@ class WindOverlay extends React.Component {
     ctx.clearRect(0, 0, width, height);
     ctx.globalCompositeOperation = 'source-over';
 
-    if (this.state.points) {
-      for (const point of this.state.points) {
+    if (this.props.windTrails) {
+      for (const point of this.props.windTrails) {
         let pixel = mercator.project(point.origin);
         if (pixel[0] + dotRadius >= 0 &&
             pixel[0] - dotRadius < width &&

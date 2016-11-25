@@ -1,5 +1,6 @@
 import R from 'ramda';
 import { GlobalStore, Action } from 'fluxx';
+import ViewportMercator from 'viewport-mercator-project';
 
 
 const GeoStore = require('terraformer-geostore').GeoStore;
@@ -13,7 +14,9 @@ export const actions = {
   receiveUpdateBoatDirection: Action('receiveUpdateBoatDirection'),
   updateWindCells: Action('updateWindCells'),
   closeWs: Action('closeWs'),
-  updatePlayer: Action('updatePlayer')
+  updatePlayer: Action('updatePlayer'),
+  updateBoatDirection: Action('updateBoatDirection'),
+  resetWindTrails: Action('resetWindTrails')
 };
 
 function wsurl(s) {
@@ -21,6 +24,29 @@ function wsurl(s) {
   return ((l.protocol === "https:") ? "wss://" : "ws://") + l.host + l.pathname + s;
 }
 var ws = new WebSocket(wsurl('ws/socket'));
+
+function initialTrails(props) {
+  console.log('reset trails');
+  const mercator = ViewportMercator(props);
+
+  let windTrails = [];
+  const stepX = 50; // pixels
+  const stepY = 50; // pixels
+  let x = 0, y = 0;
+
+  while (x < props.width) {
+    y = 0;
+    while (y < props.height) {
+      windTrails.push({
+        origin: mercator.unproject([x, y]) // array of [lng, lat]
+      });
+      y = y + stepY;
+    }
+    x = x + stepX;
+  }
+
+  return windTrails;
+}
 
 export const store = GlobalStore({
 
@@ -39,8 +65,8 @@ export const store = GlobalStore({
       [35, -86, -4.699999809265137,4.400000095367432], // lat, lng, u, v
       [33, -84, -2.799999952316284, -4.099999904632568] // lat, lng, u, v
     ],
+    windTrails: [],
     boat:[47.106535, -2.112102, 0], // lat, long, direction
-
     player: {
       name: "Anonymous",
       color: "red"
@@ -49,10 +75,12 @@ export const store = GlobalStore({
 
   handlers: {
     [actions.setViewport]: (state, viewport) => {
-      return R.merge(state, viewport);
+      const withViewport = R.merge(state, viewport);
+      return R.merge(withViewport, {windTrails: initialTrails(withViewport)});
     },
     [actions.updateDimensions]: (state, dimensions) => {
-      return R.merge(state, dimensions);
+      const withDim = R.merge(state, dimensions);
+      return R.merge(withDim, {windTrails: initialTrails(withDim)});
     },
 
     [actions.sendUpdateBoatDirection]: (state, direction) => {
@@ -64,18 +92,20 @@ export const store = GlobalStore({
     [actions.receiveUpdateBoatDirection]: (state, newBoatInfo)=> {
       return R.merge(state, newBoatInfo);
     },
-
     [actions.updatePlayer]: (state, player) => {
       return R.merge(state, player);
     },
-
     [actions.updateWindCells]: (state, windCells) => {
       return R.merge(state, { geoStore: makeGeoStore(windCells) });
     },
     [actions.closeWs]: () => {
       ws.close();
+    },
+    [actions.resetWindTrails]: (state) => {
+      return R.merge(state, { windTrails: initialTrails(state) });
     }
   }
+
 });
 
 function makeGeoStore(windCells) {
