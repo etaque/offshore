@@ -109,12 +109,13 @@ export const store = GlobalStore({
       return R.merge(state, { windTrails: initialTrails(state) });
     },
     [actions.stepTrails]: (state) => {
+      const step = 0.5 / (state.zoom * state.zoom);
       const windTrails = R.map((trail) => {
         if (trail.tail.length > 20 + (20 * Math.random())) {
           trail.tail = [trail.origin];
         } else {
           let last = trail.tail[0];
-          let newPoint = [last[0] + 0.1, last[1] + 0.1];
+          let newPoint = [last[0] + step, last[1] + step];
           trail.tail.unshift(newPoint);
         }
         return trail;
