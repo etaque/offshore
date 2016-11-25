@@ -29,8 +29,8 @@ function wsurl(s) {
 var ws = new WebSocket(wsurl('ws/socket'));
 ws.onopen = function() {
   const mercator = ViewportMercator(store.state.viewport);
-  const topleft = mercator.unproject(0, 0);
-  const bottomright = mercator.project(store.state.viewport.height, store.state.viewport.width);
+  const topleft = mercator.unproject([0, 0]);
+  const bottomright = mercator.project([store.state.viewport.height, store.state.viewport.width]);
   ws.send(JSON.stringify({
     command: "moveWindow",
     value: {
@@ -97,13 +97,21 @@ export const store = GlobalStore({
     [actions.setViewport]: (state, viewport) => {
       const mergedViewport = R.merge(state.viewport, viewport);
       if (ws.readyState === 1) {
+        const mercator = ViewportMercator(mergedViewport);
+        const topleft = mercator.project([0, 0]);
+        const bottomright = mercator.unproject([mergedViewport.height,mergedViewport.width]);
+
         ws.send(JSON.stringify({
           command: "moveWindow",
           value: {
-            latitude: mergedViewport.latitude,
-            longitude: mergedViewport.longitude,
-            height:mergedViewport.height,
-            width: mergedViewport.width
+            p1: {
+              latitude: topleft[1],
+              longitude: topleft[0]
+            },
+            p2: {
+              latitude: bottomright[1],
+              longitude: bottomright[0]
+            }
           }
         }));
       }
