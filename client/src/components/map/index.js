@@ -17,11 +17,6 @@ function animate(time) {
   TWEEN.update(time);
 }
 
-function wsurl(s) {
-  var l = window.location;
-  return ((l.protocol === "https:") ? "wss://" : "ws://") + l.host + l.pathname + s;
-}
-
 class Map extends React.Component {
 
   updateDimensions = debounce(() => {
