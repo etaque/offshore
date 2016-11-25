@@ -2,13 +2,13 @@ package actors
 
 import akka.actor._
 import akka.event.LoggingReceive
+import dao.WindCellsDAO
 import models.{RefreshWind, WsCommand, _}
+import org.joda.time.DateTime
 import play.api.Logger
+import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.JsValue
-import play.api.Play.current
-
-import scala.concurrent.duration._
 
 
 
@@ -20,49 +20,59 @@ object UserActor {
 
   case object Refresh
 
+  case class TimestampChanged(timestamp: DateTime)
+
 }
 
 class UserActor(out: ActorRef, game: ActorRef, user: String) extends Actor with ActorLogging {
   import UserActor._
 
-  override def preStart() = game ! Join(user)
+  var playerOpt: Option[Player] = None
+  var windowOpt: Option[Window] = None
+  var timestampOpt: Option[DateTime] = None
 
-  override def postStop() = game ! Leave(user)
+  override def preStart() = game ! GameActor.Join(user)
 
-  context.system.scheduler.schedule(Duration.Zero, 33.millis, self, Refresh)(context.system.dispatcher)
+  override def postStop() = game ! GameActor.Leave(user)
 
   def receive = LoggingReceive {
 
     // Client to server
-    case js:JsValue => WsCommand.fromJson(js).map{ cmdOpt =>
-        cmdOpt match {
+    case js: JsValue =>
+      WsCommand.fromJson(js).fold(Logger.debug("Invalid input")) {
+        case MoveWindow(window) =>
+          windowOpt = Some(window)
+          self ! Refresh
 
-          case m:MoveWindow =>
-            //TODO : calcul météo pour la fenetre concernée
-            self ! Refresh
+        case r: Rotate =>
+          game ! r
 
-          case r:Rotate =>
-            game ! r
+        case UpdatePlayer(name, color) =>
+          playerOpt.foreach { player =>
+            game ! GameActor.UpdatePlayer(player.id, name, color)
+          }
 
-          case _ => Logger.debug("Invalid input")
-        }
-
-      }.getOrElse{
-        Logger.debug("Invalid input")
+        case _ => Logger.debug("Invalid input")
       }
 
     // Server to client
-    case p:Player =>
+    case p: Player =>
+      playerOpt = Some(p)
 
-    case Refresh =>
-
-      def winds: RefreshWind = ??? //TODO
-
-      out ! WsCommand.toJson(winds)
+    case TimestampChanged(timestamp) =>
+      timestampOpt = Some(timestamp)
+      self ! Refresh
 
     case r:RefreshBoat =>
-
       out ! WsCommand.toJson(r)
+
+    case Refresh =>
+      (windowOpt, timestampOpt) match {
+        case (Some(window), Some(timestamp)) =>
+          val windInfoList: Seq[WindInfo] = WindCellsDAO.findByTimestampAndBox(timestamp, window.toBox)
+          out ! WsCommand.toJson(RefreshWind(windInfoList.map(_.toCell)))
+        case _ => // ignore
+      }
 
     // ignore else
     case _ =>
