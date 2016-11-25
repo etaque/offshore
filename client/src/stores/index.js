@@ -28,13 +28,20 @@ function wsurl(s) {
 }
 var ws = new WebSocket(wsurl('ws/socket'));
 ws.onopen = function() {
+  const mercator = ViewportMercator(store.state.viewport);
+  const topleft = mercator.unproject(0, 0);
+  const bottomright = mercator.project(store.state.viewport.height, store.state.viewport.width);
   ws.send(JSON.stringify({
     command: "moveWindow",
     value: {
-      latitude: store.state.viewport.latitude,
-      longitude: store.state.viewport.longitude,
-      height: store.state.viewport.height,
-      width: store.state.viewport.width
+      p1: {
+        latitude: topleft[1],
+        longitude: topleft[0]
+      },
+      p2: {
+        latitude: bottomright[1],
+        longitude: bottomright[0]
+      }
     }
   }));
 };
