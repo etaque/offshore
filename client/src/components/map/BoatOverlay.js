@@ -16,13 +16,13 @@ class BoatOverlay extends React.Component {
 
   render() {
     const { boat } = this.props;
-    const mercator = ViewportMercator(this.props);
+    const mercator = ViewportMercator(this.props.viewport);
     if (boat) {
-      const [x, y] = mercator.project([boat[1], boat[0]]);
+      const pixel = mercator.project([boat[1], boat[0]]);
       return h('.boat-overlay', {
         style: { position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }
       }, [
-        h(Boat, { x: x, y: y, angle: boat[2] })
+        h(Boat, { x: pixel[0], y: pixel[1], angle: boat[2] })
       ]);
     }
   }
