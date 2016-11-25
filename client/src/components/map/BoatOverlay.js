@@ -6,6 +6,7 @@ import connect from 'fluxx/lib/ReactConnector';
 
 import { actions, store } from '../../stores';
 
+import Boat from '../boat';
 
 class BoatOverlay extends React.Component {
 
@@ -21,17 +22,7 @@ class BoatOverlay extends React.Component {
       return h('.boat-overlay', {
         style: { position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }
       }, [
-        h('img', {
-          src: '/assets/media/boat.svg',
-          width: 34,
-          height: 34,
-          style: {
-            marginLeft: "-17px",
-            marginTop: "-17px",
-            transform: `translate3d(${x}px, ${y}px, 0) rotateZ(${boat[2]}deg)`,
-            transformOrigin: '17px 17px 0'
-          }
-        })
+        h(Boat, { x: x, y: y, angle: boat[2] })
       ]);
     }
   }
