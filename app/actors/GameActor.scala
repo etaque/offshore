@@ -50,7 +50,8 @@ class GameActor extends Actor with ActorLogging {
 
   protected[this] var state: GameState = Waiting(Seq())
 
-  GribLoader.load(DateTime.now().withDurationAdded(JodaDuration.standardDays(gameDurationInDays), -1), DateTime.now())
+  //GribLoader.load(DateTime.now().withDurationAdded(JodaDuration.standardDays(gameDurationInDays), -1), DateTime.now())
+  GribLoader.load(DateTime.parse("2016-11-12T00:00:00"), DateTime.now())
 
   def receive = LoggingReceive(onStateWaiting)
 
@@ -63,6 +64,9 @@ class GameActor extends Actor with ActorLogging {
       Logger.info(s"$user has joined the game !")
       subscribers = subscribers :+ sender
       sender ! player
+
+      // TODO: remove this line once game starting management is done
+      context.system.scheduler.scheduleOnce(10.seconds, self, Start)(context.system.dispatcher)
 
     case Leave(user) =>
       Logger.info(s"$user has left the game !")
@@ -80,7 +84,8 @@ class GameActor extends Actor with ActorLogging {
       updateBoats(state.asInstanceOf[Waiting].players.map(_.boat))
 
     case Start =>
-      val startingDate = DateTime.now().withDurationAdded(JodaDuration.standardDays(gameDurationInDays), -1)
+      // TODO: manage starting date
+      val startingDate = DateTime.parse("2016-11-12T00:00:00")
       state = Running(GameInfo(timestamp = startingDate, players = state.asInstanceOf[Waiting].players))
       context.become(onStateRunning)
       context.system.scheduler.schedule(Duration.Zero, intervalPerRefresh, self, Refresh)(context.system.dispatcher)
