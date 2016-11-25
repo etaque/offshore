@@ -36,7 +36,7 @@ class UserActor(out: ActorRef, game: ActorRef, user: String) extends Actor with 
   var timestampOpt: Option[DateTime] = None
   var previousTimestamp: Option[DateTime] = None
   var previousWindow: Option[Window] = None
-  var previousPeriodicTimestamp: Option[DateTime] = None
+  var previousSnapshot: Option[Long] = None
 
   context.system.scheduler.schedule(Duration.Zero, intervalPerRefresh, self, Refresh)(context.system.dispatcher)
 
@@ -82,16 +82,16 @@ class UserActor(out: ActorRef, game: ActorRef, user: String) extends Actor with 
           if (windowChanged) {
             previousTimestamp = Some(timestamp)
             previousWindow = Some(window)
-            previousPeriodicTimestamp = WindCellsDAO.findPeriodicTimestamp(timestamp)
-            previousPeriodicTimestamp.foreach { periodicTimestamp =>
-              val windInfoList: Seq[WindInfo] = WindCellsDAO.findByTimestampAndBox(periodicTimestamp, window.toBox)
+            previousSnapshot = WindCellsDAO.findSnapshot(timestamp)
+            previousSnapshot.foreach { snapshotId =>
+              val windInfoList: Seq[WindInfo] = WindCellsDAO.findBySnapshotAndBox(snapshotId, window.toBox)
               WsCommand.toJson(RefreshWind(windInfoList.map(_.toCell))).foreach(json => out ! json)
             }
           } else if (timestampChanged) {
-            WindCellsDAO.findPeriodicTimestamp(timestamp).foreach { newPeriodicTimestamp =>
-              if (!previousPeriodicTimestamp.exists(newPeriodicTimestamp.equals)) {
-                previousPeriodicTimestamp = Some(newPeriodicTimestamp)
-                val windInfoList: Seq[WindInfo] = WindCellsDAO.findByTimestampAndBox(newPeriodicTimestamp, window.toBox)
+            WindCellsDAO.findSnapshot(timestamp).foreach { newSnapshotId =>
+              if (!previousSnapshot.exists(newSnapshotId.equals)) {
+                previousSnapshot = Some(newSnapshotId)
+                val windInfoList: Seq[WindInfo] = WindCellsDAO.findBySnapshotAndBox(newSnapshotId, window.toBox)
                 WsCommand.toJson(RefreshWind(windInfoList.map(_.toCell))).foreach(json => out ! json)
               }
             }

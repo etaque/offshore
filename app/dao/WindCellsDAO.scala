@@ -57,13 +57,13 @@ object WindCellsDAO {
       .as(single.singleOpt)
   }
 
-  def findPeriodicTimestamp(timestamp: DateTime): Option[DateTime] = DB.withConnection { implicit c =>
+  def findSnapshot(timestamp: DateTime): Option[Long] = DB.withConnection { implicit c =>
     SQL"SELECT id FROM snapshots WHERE timestamp = (SELECT MAX(timestamp) FROM snapshots WHERE timestamp <= $timestamp AND endDate IS NOT NULL)"
-      .as(scalar[DateTime].singleOpt)
+      .as(scalar[Long].singleOpt)
   }
 
-  def findByTimestampAndBox(timestamp: DateTime, box: Box): Seq[WindInfo] = DB.withConnection { implicit c =>
-     SQL"SELECT * FROM wind_info WHERE timestamp = $timestamp AND $box @> position"
+  def findBySnapshotAndBox(snapshotId: Long, box: Box): Seq[WindInfo] = DB.withConnection { implicit c =>
+     SQL"SELECT * FROM wind_info WHERE snapshot_id = $snapshotId AND $box @> position"
        .as(singleWindInfo.*)
   }
 }
