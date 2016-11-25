@@ -1,6 +1,6 @@
 package models
 
-import play.api.libs.json._
+import play.api.libs.json.{JsObject, _}
 
 sealed trait WsCommand
 
@@ -69,31 +69,37 @@ object WsCommand {
   def toJson(command: WsCommand): Option[JsValue] = {
     command match {
       case command: RefreshWind => toJsonRefreshWind(command)
-      case command: RefreshBoat => toJsonRefreshBoat(command)
+      case command: RefreshBoat => toJsonRefreshBoats(command)
       case _ => None // ignore client command
     }
   }
 
   def toJsonRefreshWind(command: RefreshWind): Option[JsValue] = {
-    Some(JsArray(command.cells.map { cell =>
-      JsObject(Map(
-        "latitude" -> JsNumber(cell.latitude),
-        "longitude" -> JsNumber(cell.longitude),
-        "speed" -> JsNumber(cell.speed),
-        "origin" -> JsNumber(cell.origin)
-      ))
-    }))
+    Some(JsObject(Map(
+      "command" -> JsString("refreshWind"),
+      "value" -> JsArray(command.cells.map { cell =>
+        JsObject(Map(
+          "latitude" -> JsNumber(cell.latitude),
+          "longitude" -> JsNumber(cell.longitude),
+          "speed" -> JsNumber(cell.speed),
+          "origin" -> JsNumber(cell.origin)
+        ))
+      })
+    )))
   }
 
-  def toJsonRefreshBoat(command: RefreshBoat): Option[JsValue] = {
-    Some(JsArray(command.boats.map { boat =>
-      JsObject(Map(
-        "name" -> JsString(boat.name),
-        "color" -> JsString(boat.color),
-        "latitude" -> JsNumber(boat.latitude),
-        "longitude" -> JsNumber(boat.longitude),
-        "angle" -> JsNumber(boat.angle)
-      ))
-    }))
+  def toJsonRefreshBoats(command: RefreshBoat): Option[JsValue] = {
+    Some(JsObject(Map(
+      "command" -> JsString("refreshBoats"),
+      "value" -> JsArray(command.boats.map { boat =>
+        JsObject(Map(
+          "name" -> JsString(boat.name),
+          "color" -> JsString(boat.color),
+          "latitude" -> JsNumber(boat.latitude),
+          "longitude" -> JsNumber(boat.longitude),
+          "angle" -> JsNumber(boat.angle)
+        ))
+      })
+    )))
   }
 }

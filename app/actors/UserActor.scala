@@ -10,11 +10,15 @@ import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.JsValue
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 
 object UserActor {
 
   val game = Akka.system.actorOf(Props[GameActor], "weather")
+
+  val intervalPerRefresh = 500.millis
 
   def props(out: ActorRef, user: String) = Props(new UserActor(out, game, user))
 
@@ -31,6 +35,10 @@ class UserActor(out: ActorRef, game: ActorRef, user: String) extends Actor with 
   var windowOpt: Option[Window] = None
   var timestampOpt: Option[DateTime] = None
   var previousTimestamp: Option[DateTime] = None
+  var previousWindow: Option[Window] = None
+  var previousPeriodicTimestamp: Option[DateTime] = None
+
+  context.system.scheduler.schedule(Duration.Zero, intervalPerRefresh, self, Refresh)(context.system.dispatcher)
 
   override def preStart() = game ! GameActor.Join(user)
 
@@ -43,7 +51,6 @@ class UserActor(out: ActorRef, game: ActorRef, user: String) extends Actor with 
       WsCommand.fromJson(js).fold(Logger.debug("Invalid input")) {
         case MoveWindow(window) =>
           windowOpt = Some(window)
-          self ! Refresh
 
         case r: Rotate =>
           game ! r
@@ -62,7 +69,6 @@ class UserActor(out: ActorRef, game: ActorRef, user: String) extends Actor with 
 
     case TimestampChanged(timestamp) =>
       timestampOpt = Some(timestamp)
-      self ! Refresh
 
     case r:RefreshBoat =>
       out ! WsCommand.toJson(r)
@@ -70,11 +76,26 @@ class UserActor(out: ActorRef, game: ActorRef, user: String) extends Actor with 
     case Refresh =>
       (windowOpt, timestampOpt) match {
         case (Some(window), Some(timestamp)) =>
-          //if (!previousTimestamp.exists(timestamp.equals)) {
-          //  previousTimestamp = Some(timestamp)
-            val windInfoList: Seq[WindInfo] = WindCellsDAO.findByTimestampAndBox(timestamp, window.toBox)
-            out ! WsCommand.toJson(RefreshWind(windInfoList.map(_.toCell)))
-          //}
+          // Avoid sending same data than last time.
+          val timestampChanged = !previousTimestamp.exists(timestamp.equals)
+          val windowChanged = !previousWindow.exists(_ == window)
+          if (windowChanged) {
+            previousTimestamp = Some(timestamp)
+            previousWindow = Some(window)
+            previousPeriodicTimestamp = WindCellsDAO.findPeriodicTimestamp(timestamp)
+            previousPeriodicTimestamp.foreach { periodicTimestamp =>
+              val windInfoList: Seq[WindInfo] = WindCellsDAO.findByTimestampAndBox(periodicTimestamp, window.toBox)
+              WsCommand.toJson(RefreshWind(windInfoList.map(_.toCell))).foreach(json => out ! json)
+            }
+          } else if (timestampChanged) {
+            WindCellsDAO.findPeriodicTimestamp(timestamp).foreach { newPeriodicTimestamp =>
+              if (!previousPeriodicTimestamp.exists(newPeriodicTimestamp.equals)) {
+                previousPeriodicTimestamp = Some(newPeriodicTimestamp)
+                val windInfoList: Seq[WindInfo] = WindCellsDAO.findByTimestampAndBox(newPeriodicTimestamp, window.toBox)
+                WsCommand.toJson(RefreshWind(windInfoList.map(_.toCell))).foreach(json => out ! json)
+              }
+            }
+          }
         case _ => // ignore
       }
 
