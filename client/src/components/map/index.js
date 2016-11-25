@@ -67,7 +67,8 @@ class Map extends React.Component {
       mapboxApiAccessToken: 'pk.eyJ1IjoiZWxvaXNhbnQiLCJhIjoiY2l2dGt6MDJoMDAyYzJ6bDRmMXdtNWE2ciJ9.ph6CziqSFFnHUzc35qvuzw',
       onChangeViewport: this._onChangeViewport
     }, this.props.viewport), [
-      h(WindHeatOverlay), h(WindOverlay), h(BoatOverlay)
+      //h(WindHeatOverlay),
+      h(WindOverlay), h(BoatOverlay)
     ]);
   }
 

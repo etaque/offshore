@@ -123,7 +123,6 @@ export const store = GlobalStore({
       return R.merge(state, player);
     },
     [actions.updateWindCells]: (state, windCells) => {
-      console.log('updateWindCells');
       return R.merge(state, {
         windCells: windCells,
         geoStore: makeGeoStore(windCells)
@@ -136,12 +135,12 @@ export const store = GlobalStore({
       return R.merge(state, { windTrails: initialTrails(state.viewport) });
     },
     [actions.stepTrails]: (state) => {
-      const step = 0.05 / (state.viewport.zoom * state.viewport.zoom);
+      const step = 0.1 / (state.viewport.zoom * state.viewport.zoom);
       const windTrails = R.map((trail) => {
         let last = trail.tail[0];
-        const wind = getWindOnPoint() || { origin: 200, speed: 10 + 20 * Math.random() };
+        const wind = getWindOnPoint(Math.round(last[1]), Math.round(last[0])) || { origin: 200, speed: 0 };
         let speed = wind.speed;
-        if (trail.tail.length > 10 + speed) {
+        if (trail.tail.length > 30 + speed) {
           trail.tail = [trail.origin];
         } else {
           let angle = wind.origin * (Math.PI / 180);
@@ -169,7 +168,7 @@ function makeGeoStore(windCells) {
   windCells.map(cell => {
     geoStore[cell.latitude + "," + cell.longitude] = cell;
   });
-
+  console.log('geoStore', geoStore);
   return geoStore;
 }
 
@@ -184,7 +183,7 @@ ws.onmessage = function(event) {
   switch(data.command) {
   case 'refreshWind':
     console.log("received wind data");
-    actions.updateWindCells(data.values);
+    actions.updateWindCells(data.value);
     break;
   case 'refreshBoat':
     console.log("refresh boat data");
