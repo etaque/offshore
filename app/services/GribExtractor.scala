@@ -38,9 +38,9 @@ object GribExtractor {
       val gds = uRecord.getGDS.getGdsVars
 
       dataForRecord(data, uRecord).zip(dataForRecord(data, vRecord)).zipWithIndex.map { case ((u, v), i) =>
-        val lat = gds.getLa1 - (i / gds.getNx) * gds.getDy
-        val lon = utils.Geo.degreesToAzimuth(gds.getLo1 + (i % gds.getNx) * gds.getDx)
-        WindCell(snapshotId, Position(lat, lon), u, v)
+        val lat = gds.getLa1.toDouble - (i / gds.getNx) * gds.getDy
+        val lon = utils.Geo.degreesToAzimuth(gds.getLo1.toDouble + (i % gds.getNx) * gds.getDx)
+        WindCell(snapshotId, Position(lat, lon), u.toDouble, v.toDouble)
       }
     } finally {
       file.close()
@@ -53,4 +53,3 @@ object GribExtractor {
   private def dataForRecord(data: Grib2Data, record: Grib2Record): Seq[Float] =
     data.getData(record.getGdsOffset, record.getPdsOffset, record.getId.getRefTime).toSeq
 }
-
